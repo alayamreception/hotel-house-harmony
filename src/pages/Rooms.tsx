@@ -22,11 +22,11 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Plus, House, Loader2 } from 'lucide-react';
 import { RoomStatus } from '@/types';
 
 const Rooms = () => {
-  const { rooms, staff, updateRoomStatus, assignTask } = useHotel();
+  const { rooms, staff, updateRoomStatus, assignTask, addRoom, loading } = useHotel();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -34,6 +34,7 @@ const Rooms = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   // New room form state
   const [newRoom, setNewRoom] = useState({
@@ -54,7 +55,7 @@ const Rooms = () => {
     return rooms.filter(room => {
       const matchesSearch = room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         room.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.notes.toLowerCase().includes(searchTerm.toLowerCase());
+        (room.notes && room.notes.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === 'all' || room.status === statusFilter;
       const matchesType = typeFilter === 'all' || room.type === typeFilter;
@@ -68,21 +69,44 @@ const Rooms = () => {
     setAssignDialogOpen(true);
   };
   
-  const handleAssignSubmit = () => {
+  const handleAssignSubmit = async () => {
     if (selectedRoomId && selectedStaffId) {
-      assignTask(selectedRoomId, selectedStaffId);
+      await assignTask(selectedRoomId, selectedStaffId);
       setAssignDialogOpen(false);
       setSelectedRoomId(null);
       setSelectedStaffId('');
     }
   };
   
+  const handleAddRoom = async () => {
+    await addRoom(newRoom);
+    setNewRoom({
+      roomNumber: '',
+      type: 'Standard',
+      status: 'clean',
+      notes: '',
+      priority: 1
+    });
+    setDialogOpen(false);
+  };
+  
+  if (loading.rooms) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading rooms data...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Rooms Management</h2>
         
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -177,7 +201,7 @@ const Rooms = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit">Add Room</Button>
+              <Button onClick={handleAddRoom}>Add Room</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -226,16 +250,32 @@ const Rooms = () => {
         </CardContent>
       </Card>
       
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredRooms.map((room) => (
-          <RoomCard
-            key={room.id}
-            room={room}
-            onStatusChange={updateRoomStatus}
-            onAssign={handleAssignClick}
-          />
-        ))}
-      </div>
+      {rooms.length === 0 ? (
+        <div className="bg-muted/30 rounded-lg p-8 flex flex-col items-center justify-center text-center">
+          <div className="mb-4 p-3 bg-background rounded-full">
+            <House className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">No Rooms Yet</h3>
+          <p className="text-muted-foreground mb-4">
+            Start by adding rooms to your hotel inventory.
+          </p>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Your First Room
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredRooms.map((room) => (
+            <RoomCard
+              key={room.id}
+              room={room}
+              onStatusChange={updateRoomStatus}
+              onAssign={handleAssignClick}
+            />
+          ))}
+        </div>
+      )}
       
       <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
         <DialogContent>

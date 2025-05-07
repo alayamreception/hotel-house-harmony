@@ -21,34 +21,51 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Clock } from 'lucide-react';
+import { Plus, Clock, Loader2 } from 'lucide-react';
+import { Staff as StaffType } from '@/types';
 
 const Staff = () => {
-  const { staff, rooms, tasks, addStaff } = useHotel();
+  const { staff, rooms, tasks, addStaff, loading } = useHotel();
+  const [open, setOpen] = useState(false);
   
-  const [newStaff, setNewStaff] = useState({
+  const [newStaff, setNewStaff] = useState<Omit<StaffType, 'id' | 'assignedRooms'>>({
     name: '',
     role: 'Housekeeper',
     shift: 'Morning',
-    assignedRooms: [] as string[]
   });
   
-  const handleAddStaff = () => {
-    addStaff(newStaff);
+  const handleAddStaff = async () => {
+    await addStaff({
+      ...newStaff,
+      assignedRooms: []
+    });
+    
     setNewStaff({
       name: '',
       role: 'Housekeeper',
       shift: 'Morning',
-      assignedRooms: []
     });
+    
+    setOpen(false);
   };
+  
+  if (loading.staff) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading staff data...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Staff Management</h2>
         
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -118,71 +135,87 @@ const Staff = () => {
         </Dialog>
       </div>
       
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {staff.map((staffMember) => {
-          const assignedTasks = tasks.filter(task => task.staffId === staffMember.id);
-          const assignedRooms = staffMember.assignedRooms.map(roomId => 
-            rooms.find(room => room.id === roomId)
-          ).filter(Boolean);
-          
-          const completedTasks = assignedTasks.filter(task => task.status === 'completed').length;
-          const pendingTasks = assignedTasks.filter(task => task.status !== 'completed').length;
-          
-          return (
-            <Card key={staffMember.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{staffMember.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {staffMember.role}
-                    </p>
-                  </div>
-                  <div className="flex items-center bg-muted/50 px-2 py-1 rounded">
-                    <Clock className="h-3 w-3 mr-1" />
-                    <span className="text-xs">{staffMember.shift} Shift</span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-muted/50 p-2 rounded text-center">
-                      <div className="text-xl font-bold">{pendingTasks}</div>
-                      <p className="text-xs text-muted-foreground">Pending Tasks</p>
+      {staff.length === 0 ? (
+        <div className="bg-muted/30 rounded-lg p-8 flex flex-col items-center justify-center text-center">
+          <div className="mb-4 p-3 bg-background rounded-full">
+            <Clock className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">No Staff Members Yet</h3>
+          <p className="text-muted-foreground mb-4">
+            Start by adding staff members to assign them cleaning tasks.
+          </p>
+          <Button onClick={() => setOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Your First Staff Member
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {staff.map((staffMember) => {
+            const assignedTasks = tasks.filter(task => task.staffId === staffMember.id);
+            const assignedRooms = staffMember.assignedRooms.map(roomId => 
+              rooms.find(room => room.id === roomId)
+            ).filter(Boolean);
+            
+            const completedTasks = assignedTasks.filter(task => task.status === 'completed').length;
+            const pendingTasks = assignedTasks.filter(task => task.status !== 'completed').length;
+            
+            return (
+              <Card key={staffMember.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>{staffMember.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {staffMember.role}
+                      </p>
                     </div>
-                    <div className="bg-muted/50 p-2 rounded text-center">
-                      <div className="text-xl font-bold">{completedTasks}</div>
-                      <p className="text-xs text-muted-foreground">Completed Today</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">Assigned Rooms</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {assignedRooms.length > 0 ? (
-                        assignedRooms.map((room, index) => (
-                          <div 
-                            key={`${staffMember.id}-${index}`}
-                            className="px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-xs"
-                          >
-                            Room {room?.roomNumber}
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-muted-foreground">No rooms assigned</p>
-                      )}
+                    <div className="flex items-center bg-muted/50 px-2 py-1 rounded">
+                      <Clock className="h-3 w-3 mr-1" />
+                      <span className="text-xs">{staffMember.shift} Shift</span>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button variant="outline" size="sm">View Details</Button>
-              </CardFooter>
-            </Card>
-          );
-        })}
-      </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-muted/50 p-2 rounded text-center">
+                        <div className="text-xl font-bold">{pendingTasks}</div>
+                        <p className="text-xs text-muted-foreground">Pending Tasks</p>
+                      </div>
+                      <div className="bg-muted/50 p-2 rounded text-center">
+                        <div className="text-xl font-bold">{completedTasks}</div>
+                        <p className="text-xs text-muted-foreground">Completed Today</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Assigned Rooms</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {assignedRooms.length > 0 ? (
+                          assignedRooms.map((room, index) => (
+                            <div 
+                              key={`${staffMember.id}-${index}`}
+                              className="px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-xs"
+                            >
+                              Room {room?.roomNumber}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-muted-foreground">No rooms assigned</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-end">
+                  <Button variant="outline" size="sm">View Details</Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
