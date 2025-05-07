@@ -2,7 +2,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Hotel, CalendarDays, Clock, House, Trash, ConciergeБell } from 'lucide-react';
+import { Hotel, CalendarDays, Clock, House, Trash, ConciergeBell, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface NavItemProps {
   to: string;
@@ -27,6 +28,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, active }) => {
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const { signOut, user } = useAuth();
   
   const navItems = [
     { 
@@ -80,6 +82,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             ))}
           </nav>
         </div>
+        <div className="p-4 mt-auto border-t">
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+            onClick={signOut}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
       </div>
       
       {/* Main Content */}
@@ -88,6 +100,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <h2 className="text-lg font-medium">
             {navItems.find(item => item.to === location.pathname)?.label || 'Dashboard'}
           </h2>
+          {user && (
+            <div className="ml-auto flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">
+                {user.email}
+              </span>
+            </div>
+          )}
         </header>
         <main className="p-6">{children}</main>
       </div>
