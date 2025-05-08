@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,12 +13,17 @@ import {
   Moon, 
   Sun, 
   ChevronLeft, 
-  ChevronRight 
+  ChevronRight,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
+import { PwaInstallPrompt } from './PwaInstallPrompt';
+import { usePwaInstall } from '@/hooks/use-pwa-install';
+import { useNotification } from '@/context/NotificationContext';
+import { Badge } from '@/components/ui/badge';
 
 interface NavItemProps {
   to: string;
@@ -53,6 +57,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const { isInstallable, isInstalled } = usePwaInstall();
+  const { isSupported, permission, requestPermission } = useNotification();
   
   useEffect(() => {
     // Check for saved theme preference
@@ -63,7 +70,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setTheme(initialTheme);
     
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
-  }, []);
+    
+    // Show install prompt after 3 seconds if the app is installable and not installed
+    if (isInstallable && !isInstalled) {
+      const timer = setTimeout(() => {
+        setShowInstallPrompt(true);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isInstallable, isInstalled]);
   
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -201,7 +217,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {navItems.find(item => item.to === location.pathname)?.label || 'Dashboard'}
           </h2>
           {user && (
-            <div className="ml-auto flex items-center space-x-2">
+            <div className="ml-auto flex items-center space-x-4">
+              {isSupported && permission !== 'granted' && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-sm" 
+                  onClick={requestPermission}
+                >
+                  <Bell className="h-4 w-4 mr-1" /> Enable Notifications
+                </Button>
+              )}
               <span className="text-sm text-muted-foreground dark:text-sidebar-foreground/70">
                 {user.email}
               </span>
@@ -209,6 +235,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           )}
         </header>
         <main className="p-6 dark:text-white">{children}</main>
+        
+        {/* PWA Install Prompt */}
+        {showInstallPrompt && (
+          <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+            <PwaInstallPrompt onClose={() => setShowInstallPrompt(false)} />
+          </div>
+        )}
       </div>
     </div>
   );
