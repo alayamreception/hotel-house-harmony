@@ -13,7 +13,7 @@ export function usePwaInstall() {
   useEffect(() => {
     // Check if the app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches || 
-        window.navigator.standalone === true) {
+        (navigator as any).standalone === true) {
       setIsInstalled(true);
     }
 

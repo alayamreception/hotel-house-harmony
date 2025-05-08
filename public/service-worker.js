@@ -1,11 +1,9 @@
-
 const CACHE_NAME = 'house-harmony-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  '/manifest.json'
+  // We're removing the icon URLs from here to prevent failing fetch requests
 ];
 
 // Install the service worker and cache files
@@ -37,8 +35,30 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch strategy: try network first, fall back to cache
+// Fetch strategy: try network first, fall back to cache, but handle missing icons gracefully
 self.addEventListener('fetch', (event) => {
+  // If request is for an icon, don't try to fetch if it doesn't exist
+  if (event.request.url.includes('/icons/')) {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          console.log('Failed to fetch icon:', event.request.url);
+          // Return a transparent 1x1 PNG as fallback for missing icons
+          return new Response(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+            { 
+              status: 200, 
+              headers: new Headers({
+                'Content-Type': 'image/png'
+              })
+            }
+          );
+        })
+    );
+    return;
+  }
+  
+  // For non-icon requests, use the standard strategy
   event.respondWith(
     fetch(event.request)
       .catch(() => {
