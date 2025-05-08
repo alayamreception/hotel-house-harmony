@@ -1,3 +1,4 @@
+
 const CACHE_NAME = 'house-harmony-v1';
 const urlsToCache = [
   '/',
@@ -67,19 +68,37 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Handle push notifications
+// Handle push notifications - updated to handle both JSON and text data
 self.addEventListener('push', (event) => {
-  const data = event.data.json();
+  let title = 'HouseHarmony Notification';
+  let body = 'New notification';
+  let data = {};
+  
+  try {
+    // Try to parse as JSON first
+    if (event.data) {
+      const jsonData = event.data.json();
+      title = jsonData.title || title;
+      body = jsonData.body || body;
+      data = jsonData.data || data;
+    }
+  } catch (error) {
+    // If not JSON, treat as text
+    console.log('Push notification is not JSON, treating as text');
+    if (event.data) {
+      body = event.data.text();
+    }
+  }
   
   const options = {
-    body: data.body || 'New notification',
+    body: body,
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png',
-    data: data.data || {}
+    data: data
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'HouseHarmony Notification', options)
+    self.registration.showNotification(title, options)
   );
 });
 
@@ -88,6 +107,7 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   
   event.waitUntil(
-    clients.openWindow(event.notification.data.url || '/')
+    clients.openWindow(event.notification.data?.url || '/')
   );
 });
+
