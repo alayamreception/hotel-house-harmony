@@ -80,7 +80,16 @@ self.addEventListener('push', (event) => {
       const jsonData = event.data.json();
       title = jsonData.title || title;
       body = jsonData.body || body;
-      data = jsonData.data || data;
+      data = jsonData.data || {};
+      
+      // Special handling for room updates
+      if (jsonData.type === 'room_update') {
+        title = 'Room Updated';
+        body = `Room ${jsonData.roomNumber} has been updated to ${jsonData.status} status`;
+      } else if (jsonData.type === 'room_insert') {
+        title = 'New Room Added';
+        body = `New room ${jsonData.roomNumber} has been added`;
+      }
     }
   } catch (error) {
     // If not JSON, treat as text
@@ -110,4 +119,3 @@ self.addEventListener('notificationclick', (event) => {
     clients.openWindow(event.notification.data?.url || '/')
   );
 });
-

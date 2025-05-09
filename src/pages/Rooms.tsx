@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useHotel } from '@/context/HotelContext';
 import RoomCard from '@/components/RoomCard';
@@ -24,6 +23,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Plus, House, Loader2 } from 'lucide-react';
 import { RoomStatus } from '@/types';
+import RoomRealtimeListener from '@/components/RoomRealtimeListener'; // Import the new component
 
 const Rooms = () => {
   const { rooms, staff, updateRoomStatus, assignTask, addRoom, loading } = useHotel();
@@ -103,6 +103,9 @@ const Rooms = () => {
   
   return (
     <div className="space-y-6">
+      {/* Include the realtime listener */}
+      <RoomRealtimeListener />
+      
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Rooms Management</h2>
         
