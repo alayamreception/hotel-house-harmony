@@ -20,6 +20,7 @@ interface HotelContextType {
   updateTaskStatus: (taskId: string, status: CleaningTask['status']) => Promise<void>;
   addRoom: (room: Omit<Room, 'id'>) => Promise<void>;
   addStaff: (staff: Omit<Staff, 'id'>) => Promise<void>;
+  fetchRooms: () => Promise<void>; // Exposing the fetchRooms function
 }
 
 const HotelContext = createContext<HotelContextType | undefined>(undefined);
@@ -414,7 +415,8 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         assignTask,
         updateTaskStatus,
         addRoom,
-        addStaff
+        addStaff,
+        fetchRooms // Exposing the fetchRooms function
       }}
     >
       {children}
