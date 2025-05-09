@@ -9,10 +9,10 @@ interface NavItemProps {
   icon: React.ReactNode;
   label: string;
   active: boolean;
-  collapsed: boolean;
+  collapsed?: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon, label, active, collapsed }) => {
+const NavItem: React.FC<NavItemProps> = ({ to, icon, label, active, collapsed = false }) => {
   return (
     <Link to={to}>
       <Button

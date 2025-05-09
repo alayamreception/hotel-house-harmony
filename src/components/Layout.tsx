@@ -81,12 +81,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className={`flex h-screen ${theme === 'dark' ? 'dark' : ''}`}>
       {/* Sidebar */}
-      <Sidebar 
-        collapsed={collapsed}
-        toggleSidebar={toggleSidebar}
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
+      <Sidebar collapsed={collapsed} />
       
       {/* Main Content */}
       <div className="flex-1 overflow-auto bg-gray-50 dark:bg-background">

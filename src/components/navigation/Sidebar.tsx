@@ -10,7 +10,14 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 
-const Sidebar = () => {
+interface SidebarProps {
+  collapsed?: boolean;
+  toggleSidebar?: () => void;
+  theme?: 'light' | 'dark';
+  toggleTheme?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   const location = useLocation();
   const { user } = useAuth();
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -54,48 +61,48 @@ const Sidebar = () => {
         <div className="space-y-1 py-2">
           <NavItem
             icon={<Home className="h-4 w-4" />}
-            href="/"
-            isActive={location.pathname === '/'}
-          >
-            Dashboard
-          </NavItem>
+            to="/"
+            label="Dashboard"
+            active={location.pathname === '/'}
+            collapsed={collapsed}
+          />
           <NavItem
             icon={<Building2 className="h-4 w-4" />}
-            href="/rooms"
-            isActive={location.pathname === '/rooms'}
-          >
-            Rooms
-          </NavItem>
+            to="/rooms"
+            label="Rooms"
+            active={location.pathname === '/rooms'}
+            collapsed={collapsed}
+          />
           <NavItem
             icon={<CalendarRange className="h-4 w-4" />}
-            href="/schedule"
-            isActive={location.pathname === '/schedule'}
-          >
-            Schedule
-          </NavItem>
+            to="/schedule"
+            label="Schedule"
+            active={location.pathname === '/schedule'}
+            collapsed={collapsed}
+          />
           <NavItem
             icon={<ClipboardList className="h-4 w-4" />}
-            href="/tasks"
-            isActive={location.pathname === '/tasks'}
-          >
-            Tasks
-          </NavItem>
+            to="/tasks"
+            label="Tasks"
+            active={location.pathname === '/tasks'}
+            collapsed={collapsed}
+          />
           <NavItem
             icon={<Users className="h-4 w-4" />}
-            href="/staff"
-            isActive={location.pathname === '/staff'}
-          >
-            Staff
-          </NavItem>
+            to="/staff"
+            label="Staff"
+            active={location.pathname === '/staff'}
+            collapsed={collapsed}
+          />
           
           {isSupervisor && (
             <NavItem
               icon={<ClipboardCheck className="h-4 w-4" />}
-              href="/supervisor-tasks"
-              isActive={location.pathname === '/supervisor-tasks'}
-            >
-              Supervisor Dashboard
-            </NavItem>
+              to="/supervisor-tasks"
+              label="Supervisor Dashboard"
+              active={location.pathname === '/supervisor-tasks'}
+              collapsed={collapsed}
+            />
           )}
         </div>
       </ScrollArea>
