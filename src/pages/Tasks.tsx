@@ -15,11 +15,13 @@ const Tasks = () => {
     return tasks.filter(task => {
       const matchingRoom = rooms.find(room => room.id === task.roomId);
       const matchingStaff = staff.find(s => s.id === task.staffId);
+      const assignedStaffNames = task.assignedStaff?.map(a => a.staff?.name).filter(Boolean) || [];
       
       // Check if there's a search term to match against
       const matchesSearch = searchTerm ? (
         matchingRoom?.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        matchingStaff?.name.toLowerCase().includes(searchTerm.toLowerCase())
+        matchingStaff?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assignedStaffNames.some(name => name?.toLowerCase().includes(searchTerm.toLowerCase()))
       ) : true;
       
       // Check if the task matches the status filter
@@ -60,14 +62,16 @@ const Tasks = () => {
         {filteredTasks.length > 0 ? (
           filteredTasks.map(task => {
             const room = rooms.find(r => r.id === task.roomId)!;
-            const staffMember = staff.find(s => s.id === task.staffId)!;
+            const mainStaff = staff.find(s => s.id === task.staffId)!;
+            const supervisorStaff = task.supervisorId ? staff.find(s => s.id === task.supervisorId) : undefined;
             
             return (
               <TaskItem
                 key={task.id}
                 task={task}
                 room={room}
-                staff={staffMember}
+                staff={mainStaff}
+                supervisorStaff={supervisorStaff}
                 onStatusChange={updateTaskStatus}
               />
             );

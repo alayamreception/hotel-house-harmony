@@ -19,6 +19,7 @@ export type Database = {
           scheduled_date: string
           staff_id: string | null
           status: string
+          supervisor_id: string | null
           updated_at: string
         }
         Insert: {
@@ -30,6 +31,7 @@ export type Database = {
           scheduled_date: string
           staff_id?: string | null
           status: string
+          supervisor_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -41,6 +43,7 @@ export type Database = {
           scheduled_date?: string
           staff_id?: string | null
           status?: string
+          supervisor_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -54,6 +57,13 @@ export type Database = {
           {
             foreignKeyName: "cleaning_tasks_staff_id_fkey"
             columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_tasks_supervisor_id_fkey"
+            columns: ["supervisor_id"]
             isOneToOne: false
             referencedRelation: "staff"
             referencedColumns: ["id"]
@@ -158,6 +168,42 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      task_assignments: {
+        Row: {
+          assigned_at: string | null
+          id: string
+          staff_id: string
+          task_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          id?: string
+          staff_id: string
+          task_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          id?: string
+          staff_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_assignments_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_assignments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

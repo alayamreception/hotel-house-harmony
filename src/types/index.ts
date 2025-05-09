@@ -24,10 +24,20 @@ export interface CleaningTask {
   id: string;
   roomId: string;
   staffId: string;
+  supervisorId?: string;
   status: 'pending' | 'in-progress' | 'completed';
   scheduledDate: Date;
   completedDate?: Date;
   notes: string;
+  assignedStaff?: TaskAssignment[];
+}
+
+export interface TaskAssignment {
+  id: string;
+  taskId: string;
+  staffId: string;
+  assignedAt: Date;
+  staff?: Staff;
 }
 
 export interface DashboardStats {
