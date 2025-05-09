@@ -6,7 +6,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
 import Rooms from '@/pages/Rooms';
-import Schedule from '@/pages/Schedule';
 import Tasks from '@/pages/Tasks';
 import Staff from '@/pages/Staff';
 import SupervisorTasks from '@/pages/SupervisorTasks';
@@ -48,15 +47,6 @@ const AppRoutes = () => {
           <HotelProvider>
             <Layout>
               <Rooms />
-            </Layout>
-          </HotelProvider>
-        </ProtectedRoute>
-      } />
-      <Route path="/schedule" element={
-        <ProtectedRoute>
-          <HotelProvider>
-            <Layout>
-              <Schedule />
             </Layout>
           </HotelProvider>
         </ProtectedRoute>

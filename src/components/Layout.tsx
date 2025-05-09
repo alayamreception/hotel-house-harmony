@@ -62,11 +62,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       icon: <House className="h-4 w-4" /> 
     },
     { 
-      to: '/schedule', 
-      label: 'Schedule', 
-      icon: <CalendarDays className="h-4 w-4" /> 
-    },
-    { 
       to: '/tasks', 
       label: 'Tasks', 
       icon: <Trash className="h-4 w-4" /> 
@@ -89,6 +84,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           collapsed={collapsed} 
           toggleSidebar={toggleSidebar}
           navItems={navItems}
+          theme={theme}
+          toggleTheme={toggleTheme}
         />
         <main className="p-6 dark:text-white">{children}</main>
         

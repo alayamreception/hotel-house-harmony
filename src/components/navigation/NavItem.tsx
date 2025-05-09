@@ -14,7 +14,7 @@ interface NavItemProps {
 
 const NavItem: React.FC<NavItemProps> = ({ to, icon, label, active, collapsed = false }) => {
   return (
-    <Link to={to}>
+    <Link to={to} className="block w-full">
       <Button
         variant={active ? 'default' : 'ghost'}
         className={cn(
@@ -23,8 +23,12 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, active, collapsed = 
           collapsed ? 'px-2' : ''
         )}
       >
-        <span className={collapsed ? '' : 'mr-2'}>{icon}</span>
-        {!collapsed && label}
+        <span className={cn(
+          collapsed ? 'mx-auto' : 'mr-2'
+        )}>
+          {icon}
+        </span>
+        {!collapsed && <span>{label}</span>}
       </Button>
     </Link>
   );

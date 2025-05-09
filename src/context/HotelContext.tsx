@@ -292,6 +292,8 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
       
+      console.log('Assigning task:', { roomId, staffIds, supervisorId });
+      
       // Create new task in Supabase
       const { data, error } = await supabase
         .from('cleaning_tasks')
@@ -307,8 +309,18 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .single();
       
       if (error) {
-        throw error;
+        console.error('Error creating task:', error);
+        toast.error('Failed to assign task: ' + error.message);
+        return;
       }
+      
+      if (!data || !data.id) {
+        console.error('No data returned from task creation');
+        toast.error('Failed to create task - no data returned');
+        return;
+      }
+      
+      console.log('Task created:', data);
       
       // Create task assignments for all staff members
       const assignments = staffIds.map(staffId => ({
@@ -321,7 +333,9 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .insert(assignments);
       
       if (assignmentError) {
-        throw assignmentError;
+        console.error('Error creating assignments:', assignmentError);
+        toast.error('Failed to assign staff members: ' + assignmentError.message);
+        return;
       }
       
       // Fetch updated data to refresh the UI
@@ -333,9 +347,9 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }).join(', ');
       
       toast.success(`Task assigned to ${staffNames}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assigning task:', error);
-      toast.error('Failed to assign task');
+      toast.error(`Failed to assign task: ${error.message || 'Unknown error'}`);
     }
   };
 
