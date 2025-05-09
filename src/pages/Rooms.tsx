@@ -36,7 +36,7 @@ const Rooms = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
-  const [selectedSupervisorId, setSelectedSupervisorId] = useState<string>('');
+  const [selectedSupervisorId, setSelectedSupervisorId] = useState<string>('none'); // Changed from empty string to 'none'
   const [dialogOpen, setDialogOpen] = useState(false);
   
   // New room form state
@@ -75,7 +75,7 @@ const Rooms = () => {
   const handleAssignClick = (roomId: string) => {
     setSelectedRoomId(roomId);
     setSelectedStaffIds([]);
-    setSelectedSupervisorId('');
+    setSelectedSupervisorId('none'); // Changed from empty string to 'none'
     setAssignDialogOpen(true);
   };
   
@@ -89,15 +89,18 @@ const Rooms = () => {
   
   const handleAssignSubmit = async () => {
     if (selectedRoomId && selectedStaffIds.length > 0) {
+      // Use undefined for 'none' value, or the actual supervisor ID
+      const supervisorId = selectedSupervisorId === 'none' ? undefined : selectedSupervisorId;
+      
       await assignTask(
         selectedRoomId, 
         selectedStaffIds, 
-        selectedSupervisorId || undefined
+        supervisorId
       );
       setAssignDialogOpen(false);
       setSelectedRoomId(null);
       setSelectedStaffIds([]);
-      setSelectedSupervisorId('');
+      setSelectedSupervisorId('none'); // Reset to 'none'
     }
   };
   
@@ -341,7 +344,7 @@ const Rooms = () => {
                   <SelectValue placeholder="Select supervisor (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No supervisor</SelectItem>
+                  <SelectItem value="none">No supervisor</SelectItem>
                   {supervisors.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.name} - {s.role}
