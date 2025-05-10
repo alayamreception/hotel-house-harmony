@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Hotel, CalendarDays, Clock, House, Trash } from 'lucide-react';
+import { Hotel, CalendarDays, Clock, House, Trash, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PwaInstallPrompt } from './PwaInstallPrompt';
 import { usePwaInstall } from '@/hooks/use-pwa-install';
@@ -69,7 +69,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { 
       to: '/staff', 
       label: 'Staff', 
-      icon: <Clock className="h-4 w-4" /> 
+      icon: <Users className="h-4 w-4" /> 
     },
   ];
   
@@ -79,7 +79,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Sidebar collapsed={collapsed} />
       
       {/* Main Content */}
-      <div className="flex-1 overflow-auto bg-gray-50 dark:bg-background">
+      <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
         <Header 
           collapsed={collapsed} 
           toggleSidebar={toggleSidebar}

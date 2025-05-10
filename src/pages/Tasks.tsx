@@ -77,8 +77,8 @@ const Tasks = () => {
             );
           })
         ) : (
-          <div className="p-8 text-center">
-            <p className="text-muted-foreground">No tasks found matching your filters.</p>
+          <div className="p-8 text-center dark:bg-gray-800 dark:text-gray-200 rounded-md border border-gray-200 dark:border-gray-700">
+            <p className="text-muted-foreground dark:text-gray-400">No tasks found matching your filters.</p>
           </div>
         )}
       </div>

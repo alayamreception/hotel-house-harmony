@@ -10,11 +10,19 @@ interface NavItemProps {
   label: string;
   active: boolean;
   collapsed?: boolean;
+  onClick?: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ to, icon, label, active, collapsed = false }) => {
+const NavItem: React.FC<NavItemProps> = ({ 
+  to, 
+  icon, 
+  label, 
+  active, 
+  collapsed = false,
+  onClick
+}) => {
   return (
-    <Link to={to} className="block w-full">
+    <Link to={to} className="block w-full" onClick={onClick}>
       <Button
         variant={active ? 'default' : 'ghost'}
         className={cn(

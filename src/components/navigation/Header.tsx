@@ -10,8 +10,8 @@ interface HeaderProps {
   collapsed: boolean;
   toggleSidebar: () => void;
   navItems: Array<{ to: string; label: string; icon: React.ReactNode }>;
-  theme?: 'light' | 'dark';
-  toggleTheme?: () => void;
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar, navItems, theme, toggleTheme }) => {
@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar, navItems, the
   const { isSupported, permission, requestPermission } = useNotification();
   
   return (
-    <header className="bg-white dark:bg-sidebar shadow-sm border-b dark:border-sidebar-border h-16 flex items-center px-6">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 h-16 flex items-center px-6">
       <Button 
         variant="ghost" 
         size="sm" 
@@ -36,20 +36,18 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar, navItems, the
       
       {user && (
         <div className="ml-auto flex items-center space-x-4">
-          {toggleTheme && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleTheme}
-              className="px-2"
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            className="px-2"
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
           
           {isSupported && permission !== 'granted' && (
             <Button 
@@ -61,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar, navItems, the
               <Bell className="h-4 w-4 mr-1" /> Enable Notifications
             </Button>
           )}
-          <span className="text-sm text-muted-foreground dark:text-sidebar-foreground/70">
+          <span className="text-sm text-muted-foreground dark:text-gray-300">
             {user.email}
           </span>
         </div>
