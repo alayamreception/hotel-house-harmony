@@ -205,6 +205,51 @@ export type Database = {
           },
         ]
       }
+      tasks_for_the_day: {
+        Row: {
+          arrival: string | null
+          cleaned_time: string | null
+          cleaning_type: string | null
+          cottage: string | null
+          dep: string | null
+          id: number
+          remarks: string | null
+          room_no: string | null
+          room_type: string | null
+          sevadhar: string | null
+          status: string | null
+          supervisor: string | null
+        }
+        Insert: {
+          arrival?: string | null
+          cleaned_time?: string | null
+          cleaning_type?: string | null
+          cottage?: string | null
+          dep?: string | null
+          id?: never
+          remarks?: string | null
+          room_no?: string | null
+          room_type?: string | null
+          sevadhar?: string | null
+          status?: string | null
+          supervisor?: string | null
+        }
+        Update: {
+          arrival?: string | null
+          cleaned_time?: string | null
+          cleaning_type?: string | null
+          cottage?: string | null
+          dep?: string | null
+          id?: never
+          remarks?: string | null
+          room_no?: string | null
+          room_type?: string | null
+          sevadhar?: string | null
+          status?: string | null
+          supervisor?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
