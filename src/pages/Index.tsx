@@ -9,6 +9,7 @@ import Rooms from '@/pages/Rooms';
 import Tasks from '@/pages/Tasks';
 import Staff from '@/pages/Staff';
 import SupervisorTasks from '@/pages/SupervisorTasks';
+import ImportTasks from '@/pages/ImportTasks';
 import Auth from '@/pages/Auth';
 import { useAuth } from '@/context/AuthContext';
 
@@ -56,6 +57,15 @@ const AppRoutes = () => {
           <HotelProvider>
             <Layout>
               <Tasks />
+            </Layout>
+          </HotelProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/import-tasks" element={
+        <ProtectedRoute>
+          <HotelProvider>
+            <Layout>
+              <ImportTasks />
             </Layout>
           </HotelProvider>
         </ProtectedRoute>
