@@ -4,11 +4,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import NavItem from './NavItem';
-import { Home, CalendarRange, ClipboardList, Users, Building2, ClipboardCheck } from 'lucide-react';
+import { Home, CalendarRange, ClipboardList, Users, Building2, ClipboardCheck, LogOut } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
+import { Separator } from '@/components/ui/separator';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -16,7 +17,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isSupervisor, setIsSupervisor] = useState(false);
   
@@ -45,6 +46,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
     
     fetchUserRole();
   }, [user]);
+  
+  const handleSignOut = () => {
+    signOut();
+  };
   
   return (
     <div className={cn(
@@ -127,6 +132,17 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
             )}
           </div>
         </div>
+        
+        <Separator className="my-2" />
+        
+        <NavItem
+          to="/auth"
+          icon={<LogOut className="h-4 w-4" />}
+          label="Sign Out"
+          active={false}
+          collapsed={collapsed}
+          onClick={handleSignOut}
+        />
       </div>
     </div>
   );

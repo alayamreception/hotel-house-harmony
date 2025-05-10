@@ -20,11 +20,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
   const getStatusStyles = () => {
     switch (task.status) {
       case 'completed':
-        return 'bg-green-50 border-green-200';
+        return 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700';
       case 'in-progress':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700';
     }
   };
 
@@ -38,11 +38,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
   };
   
   return (
-    <div className={`p-4 border rounded-md mb-2 ${getStatusStyles()}`}>
+    <div className={`p-4 border rounded-md mb-2 ${getStatusStyles()} dark:text-gray-200`}>
       <div className="flex justify-between items-start mb-2">
         <div>
           <h3 className="text-lg font-medium">Room {room.roomNumber}</h3>
-          <p className="text-sm text-muted-foreground">{room.type} Room</p>
+          <p className="text-sm text-muted-foreground dark:text-gray-400">{room.type} Room</p>
         </div>
         <StatusBadge status={room.status} />
       </div>
@@ -90,16 +90,16 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
       
       <div className="flex items-center gap-4 mb-3">
         <div className="flex items-center">
-          <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-          <span className="text-xs">
+          <Calendar className="h-4 w-4 mr-1 text-muted-foreground dark:text-gray-400" />
+          <span className="text-xs dark:text-gray-300">
             {format(new Date(task.scheduledDate), 'MMM dd, h:mm a')}
           </span>
         </div>
         
         {task.completedDate && (
           <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-            <span className="text-xs">
+            <Clock className="h-4 w-4 mr-1 text-muted-foreground dark:text-gray-400" />
+            <span className="text-xs dark:text-gray-300">
               Completed: {format(new Date(task.completedDate), 'MMM dd, h:mm a')}
             </span>
           </div>
