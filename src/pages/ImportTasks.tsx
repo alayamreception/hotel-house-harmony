@@ -121,25 +121,19 @@ const ImportTasks = () => {
     setIsUploading(true);
     
     try {
-      // Generate row IDs for task_for_the_day (using simple incrementing integers for now)
-      // In a production app, you might want to check for existing IDs to avoid conflicts
-      const { data: maxIdData, error: maxIdError } = await supabase
-        .from('tasks_for_the_day')
-        .select('id')
-        .order('id', { ascending: false })
-        .limit(1);
-      
-      if (maxIdError) throw maxIdError;
-      
-      let startId = 1;
-      if (maxIdData && maxIdData.length > 0) {
-        startId = maxIdData[0].id + 1;
-      }
-      
-      // Prepare the data with proper IDs
-      const tasksToInsert = csvData.map((task, index) => ({
-        ...task,
-        id: startId + index
+      // Remove any attempt to generate IDs - let Supabase handle this
+      const tasksToInsert = csvData.map(task => ({
+        cottage: task.cottage,
+        room_no: task.room_no,
+        room_type: task.room_type,
+        arrival: task.arrival,
+        dep: task.dep,
+        cleaning_type: task.cleaning_type,
+        supervisor: task.supervisor,
+        cleaned_time: task.cleaned_time,
+        status: task.status,
+        sevadhar: task.sevadhar,
+        remarks: task.remarks
       }));
       
       // Insert into Supabase
