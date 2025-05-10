@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Room, Staff, CleaningTask, DashboardStats, TaskAssignment } from '../types';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +15,9 @@ interface HotelContextType {
     staff: boolean;
     tasks: boolean;
   };
+  selectedCottage: string | null;
+  setSelectedCottage: (cottage: string | null) => void;
+  availableCottages: string[];
   updateRoomStatus: (roomId: string, status: Room['status']) => Promise<void>;
   assignTask: (roomId: string, staffIds: string[], supervisorId?: string) => Promise<void>;
   updateTaskStatus: (taskId: string, status: CleaningTask['status']) => Promise<void>;
@@ -22,6 +26,9 @@ interface HotelContextType {
   fetchRooms: () => Promise<void>;
   fetchTasks: () => Promise<void>;
   getSupervisorTasks: (supervisorId: string) => CleaningTask[];
+  updateTaskAssignment: (taskId: string, staffIds: string[], supervisorId?: string) => Promise<void>;
+  markRoomForEarlyCheckout: (roomId: string) => Promise<void>;
+  extendRoomStay: (roomId: string) => Promise<void>;
 }
 
 const HotelContext = createContext<HotelContextType | undefined>(undefined);
@@ -45,17 +52,75 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     assignedTasks: 0,
     completedTasks: 0
   });
+  const [selectedCottage, setSelectedCottage] = useState<string | null>(null);
+  const [availableCottages, setAvailableCottages] = useState<string[]>([]);
+  const [userProfile, setUserProfile] = useState<any | null>(null);
   
   const { session } = useAuth();
+
+  // Fetch user profile to get assigned cottage
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!session?.user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (error) throw error;
+        
+        setUserProfile(data);
+        if (data?.assigned_cottage && !selectedCottage) {
+          setSelectedCottage(data.assigned_cottage);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [session, selectedCottage]);
+
+  // Fetch available cottages
+  useEffect(() => {
+    const fetchCottages = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('rooms')
+          .select('type')
+          .order('type');
+        
+        if (error) throw error;
+        
+        const uniqueCottages = Array.from(
+          new Set(data.map(room => room.type))
+        );
+        
+        setAvailableCottages(uniqueCottages);
+      } catch (error) {
+        console.error('Error fetching cottages:', error);
+      }
+    };
+    
+    fetchCottages();
+  }, []);
 
   // Fetch rooms data
   const fetchRooms = async () => {
     try {
       setLoading(prev => ({ ...prev, rooms: true }));
       
-      const { data, error } = await supabase
-        .from('rooms')
-        .select('*');
+      let query = supabase.from('rooms').select('*');
+      
+      // Filter by cottage if selected
+      if (selectedCottage) {
+        query = query.eq('type', selectedCottage);
+      }
+      
+      const { data, error } = await query;
       
       if (error) {
         throw error;
@@ -68,7 +133,9 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         status: room.status as Room['status'],
         notes: room.notes || '',
         priority: room.priority || 1,
-        lastCleaned: room.last_cleaned ? new Date(room.last_cleaned) : undefined
+        lastCleaned: room.last_cleaned ? new Date(room.last_cleaned) : undefined,
+        today_checkout: room.today_checkout || false,
+        early_checkout: room.early_checkout || false
       }));
       
       setRooms(formattedRooms);
@@ -149,9 +216,14 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setLoading(prev => ({ ...prev, tasks: true }));
       
-      const { data, error } = await supabase
-        .from('cleaning_tasks')
-        .select('*');
+      let query = supabase.from('cleaning_tasks').select('*');
+      
+      // Filter by cottage if selected
+      if (selectedCottage) {
+        query = query.eq('cottage_type', selectedCottage);
+      }
+      
+      const { data, error } = await query;
       
       if (error) {
         throw error;
@@ -165,7 +237,11 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         status: task.status as CleaningTask['status'],
         scheduledDate: new Date(task.scheduled_date),
         completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-        notes: task.notes || ''
+        notes: task.notes || '',
+        booking_id: task.booking_id,
+        checkout_extended: task.checkout_extended || false,
+        arrival_time: task.arrival_time ? new Date(task.arrival_time) : undefined,
+        departure_time: task.departure_time ? new Date(task.departure_time) : undefined
       }));
       
       // Fetch task assignments to associate with tasks
@@ -228,14 +304,14 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Fetch data when the component mounts or when the user logs in
+  // Fetch data when the component mounts or when the user logs in or cottage changes
   useEffect(() => {
     if (session) {
       fetchRooms();
       fetchStaff();
       fetchTasks();
     }
-  }, [session]);
+  }, [session, selectedCottage]);
 
   // Update stats when rooms or tasks change
   useEffect(() => {
@@ -277,6 +353,59 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Create a new task assignment
+  const updateTaskAssignment = async (taskId: string, staffIds: string[], supervisorId?: string) => {
+    try {
+      // First, delete existing assignments for this task
+      const { error: deleteError } = await supabase
+        .from('task_assignments')
+        .delete()
+        .eq('task_id', taskId);
+      
+      if (deleteError) {
+        throw deleteError;
+      }
+      
+      // Update the task with the new supervisor if provided
+      if (supervisorId) {
+        const { error: updateError } = await supabase
+          .from('cleaning_tasks')
+          .update({ supervisor_id: supervisorId })
+          .eq('id', taskId);
+        
+        if (updateError) throw updateError;
+      }
+      
+      // Create new assignments for all staff members
+      const assignments = staffIds.map(staffId => ({
+        task_id: taskId,
+        staff_id: staffId,
+        assigned_at: new Date().toISOString()
+      }));
+      
+      const { error: assignmentError } = await supabase
+        .from('task_assignments')
+        .insert(assignments);
+      
+      if (assignmentError) {
+        throw assignmentError;
+      }
+      
+      // Refresh tasks to update the UI
+      await fetchTasks();
+      
+      const staffNames = staffIds.map(id => {
+        const s = staff.find(s => s.id === id);
+        return s ? s.name : 'Unknown';
+      }).join(', ');
+      
+      toast.success(`Task assigned to ${staffNames}`);
+    } catch (error) {
+      console.error('Error updating task assignment:', error);
+      toast.error('Failed to update task assignment');
+    }
+  };
+
   // Assign task to multiple staff members
   const assignTask = async (roomId: string, staffIds: string[], supervisorId?: string) => {
     try {
@@ -303,7 +432,8 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           supervisor_id: supervisorId,
           status: 'pending',
           scheduled_date: new Date().toISOString(),
-          notes: ''
+          notes: '',
+          cottage_type: room.type // Add the cottage type to the task
         })
         .select()
         .single();
@@ -401,6 +531,114 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Mark room for early checkout
+  const markRoomForEarlyCheckout = async (roomId: string) => {
+    try {
+      // Update room status in database
+      const { error: roomError } = await supabase
+        .from('rooms')
+        .update({ 
+          early_checkout: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', roomId);
+      
+      if (roomError) throw roomError;
+      
+      // Update local state
+      setRooms(prevRooms => 
+        prevRooms.map(room => 
+          room.id === roomId 
+            ? { ...room, early_checkout: true } 
+            : room
+        )
+      );
+      
+      // Create a new cleaning task for early checkout if one doesn't exist
+      const room = rooms.find(r => r.id === roomId);
+      if (!room) return;
+      
+      const { data: existingTasks, error: queryError } = await supabase
+        .from('cleaning_tasks')
+        .select('*')
+        .eq('room_id', roomId)
+        .eq('status', 'pending');
+      
+      if (queryError) throw queryError;
+      
+      // Only create a new task if no pending task exists
+      if (!existingTasks || existingTasks.length === 0) {
+        const { error: taskError } = await supabase
+          .from('cleaning_tasks')
+          .insert({
+            room_id: roomId,
+            status: 'pending',
+            scheduled_date: new Date().toISOString(),
+            notes: 'Early checkout cleaning',
+            cottage_type: room.type
+          });
+        
+        if (taskError) throw taskError;
+        
+        // Refresh tasks list
+        await fetchTasks();
+      }
+      
+      toast.success(`Room ${room.roomNumber} marked for early checkout`);
+    } catch (error) {
+      console.error('Error marking room for early checkout:', error);
+      toast.error('Failed to mark room for early checkout');
+    }
+  };
+
+  // Extend room stay
+  const extendRoomStay = async (roomId: string) => {
+    try {
+      // Find any existing tasks for this room
+      const roomTasks = tasks.filter(task => task.roomId === roomId);
+      
+      if (roomTasks.length === 0) {
+        toast.error('No tasks found for this room');
+        return;
+      }
+      
+      // Update the most recent task to mark it as extended
+      const latestTask = roomTasks.reduce((latest, current) => {
+        return !latest.scheduledDate || (current.scheduledDate > latest.scheduledDate) 
+          ? current 
+          : latest;
+      }, roomTasks[0]);
+      
+      const { error } = await supabase
+        .from('cleaning_tasks')
+        .update({
+          checkout_extended: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', latestTask.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === latestTask.id 
+            ? { ...task, checkout_extended: true } 
+            : task
+        )
+      );
+      
+      const room = rooms.find(r => r.id === roomId);
+      toast.success(`Stay extended for room ${room?.roomNumber}`);
+      
+      // Refresh tasks list
+      await fetchTasks();
+    } catch (error) {
+      console.error('Error extending room stay:', error);
+      toast.error('Failed to extend room stay');
+    }
+  };
+
   // Add new room
   const addRoom = async (room: Omit<Room, 'id'>) => {
     try {
@@ -426,7 +664,9 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         type: data.type,
         status: data.status as Room['status'],
         notes: data.notes || '',
-        priority: data.priority || 1
+        priority: data.priority || 1,
+        today_checkout: false,
+        early_checkout: false
       };
       
       setRooms(prevRooms => [...prevRooms, newRoom]);
@@ -485,6 +725,9 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         tasks,
         stats,
         loading,
+        selectedCottage,
+        setSelectedCottage,
+        availableCottages,
         updateRoomStatus,
         assignTask,
         updateTaskStatus,
@@ -492,7 +735,10 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addStaff,
         fetchRooms,
         fetchTasks,
-        getSupervisorTasks
+        getSupervisorTasks,
+        updateTaskAssignment,
+        markRoomForEarlyCheckout,
+        extendRoomStay
       }}
     >
       {children}

@@ -9,6 +9,8 @@ export interface Room {
   notes: string;
   priority: number;
   lastCleaned?: Date;
+  today_checkout?: boolean;
+  early_checkout?: boolean;
 }
 
 export interface Staff {
@@ -30,6 +32,10 @@ export interface CleaningTask {
   completedDate?: Date;
   notes: string;
   assignedStaff?: TaskAssignment[];
+  booking_id?: string;
+  checkout_extended?: boolean;
+  arrival_time?: Date;
+  departure_time?: Date;
 }
 
 export interface TaskAssignment {

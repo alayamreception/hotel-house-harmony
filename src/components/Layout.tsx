@@ -9,7 +9,7 @@ import Header from './navigation/Header';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true); // Updated to true as default
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const { isInstallable, isInstalled } = usePwaInstall();

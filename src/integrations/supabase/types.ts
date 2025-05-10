@@ -11,8 +11,12 @@ export type Database = {
     Tables: {
       cleaning_tasks: {
         Row: {
+          arrival_time: string | null
+          booking_id: string | null
+          checkout_extended: boolean | null
           completed_date: string | null
           created_at: string
+          departure_time: string | null
           id: string
           notes: string | null
           room_id: string | null
@@ -23,8 +27,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arrival_time?: string | null
+          booking_id?: string | null
+          checkout_extended?: boolean | null
           completed_date?: string | null
           created_at?: string
+          departure_time?: string | null
           id?: string
           notes?: string | null
           room_id?: string | null
@@ -35,8 +43,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arrival_time?: string | null
+          booking_id?: string | null
+          checkout_extended?: boolean | null
           completed_date?: string | null
           created_at?: string
+          departure_time?: string | null
           id?: string
           notes?: string | null
           room_id?: string | null
@@ -72,6 +84,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          assigned_cottage: string | null
           avatar_url: string | null
           created_at: string
           full_name: string | null
@@ -81,6 +94,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          assigned_cottage?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
@@ -90,6 +104,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          assigned_cottage?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
@@ -103,34 +118,40 @@ export type Database = {
       rooms: {
         Row: {
           created_at: string
+          early_checkout: boolean | null
           id: string
           last_cleaned: string | null
           notes: string | null
           priority: number | null
           room_number: string
           status: string
+          today_checkout: boolean | null
           type: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          early_checkout?: boolean | null
           id?: string
           last_cleaned?: string | null
           notes?: string | null
           priority?: number | null
           room_number: string
           status: string
+          today_checkout?: boolean | null
           type: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          early_checkout?: boolean | null
           id?: string
           last_cleaned?: string | null
           notes?: string | null
           priority?: number | null
           room_number?: string
           status?: string
+          today_checkout?: boolean | null
           type?: string
           updated_at?: string
         }
