@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Room, Staff, CleaningTask, DashboardStats } from '../types';
+import { Room, Staff, CleaningTask, DashboardStats, TaskAssignment } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
@@ -16,11 +15,13 @@ interface HotelContextType {
     tasks: boolean;
   };
   updateRoomStatus: (roomId: string, status: Room['status']) => Promise<void>;
-  assignTask: (roomId: string, staffId: string) => Promise<void>;
+  assignTask: (roomId: string, staffIds: string[], supervisorId?: string) => Promise<void>;
   updateTaskStatus: (taskId: string, status: CleaningTask['status']) => Promise<void>;
   addRoom: (room: Omit<Room, 'id'>) => Promise<void>;
   addStaff: (staff: Omit<Staff, 'id'>) => Promise<void>;
-  fetchRooms: () => Promise<void>; // Exposing the fetchRooms function
+  fetchRooms: () => Promise<void>;
+  fetchTasks: () => Promise<void>;
+  getSupervisorTasks: (supervisorId: string) => CleaningTask[];
 }
 
 const HotelContext = createContext<HotelContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [rooms, setRooms] = useState<Room[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [tasks, setTasks] = useState<CleaningTask[]>([]);
+  const [taskAssignments, setTaskAssignments] = useState<TaskAssignment[]>([]);
   const [loading, setLoading] = useState({
     rooms: true,
     staff: true,
@@ -109,6 +111,39 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Fetch task assignments
+  const fetchTaskAssignments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('task_assignments')
+        .select('*, staff:staff(*)');
+      
+      if (error) {
+        throw error;
+      }
+      
+      const formattedAssignments: TaskAssignment[] = data.map(assignment => ({
+        id: assignment.id,
+        taskId: assignment.task_id,
+        staffId: assignment.staff_id,
+        assignedAt: new Date(assignment.assigned_at),
+        staff: assignment.staff ? {
+          id: assignment.staff.id,
+          name: assignment.staff.name,
+          role: assignment.staff.role,
+          shift: assignment.staff.shift,
+          assignedRooms: [],
+          avatar: assignment.staff.avatar
+        } : undefined
+      }));
+      
+      setTaskAssignments(formattedAssignments);
+    } catch (error) {
+      console.error('Error fetching task assignments:', error);
+      toast.error('Failed to load task assignments');
+    }
+  };
+
   // Fetch tasks data
   const fetchTasks = async () => {
     try {
@@ -126,22 +161,39 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         id: task.id,
         roomId: task.room_id,
         staffId: task.staff_id,
+        supervisorId: task.supervisor_id,
         status: task.status as CleaningTask['status'],
         scheduledDate: new Date(task.scheduled_date),
         completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
         notes: task.notes || ''
       }));
       
-      setTasks(formattedTasks);
+      // Fetch task assignments to associate with tasks
+      await fetchTaskAssignments();
+      
+      // Merge task assignments with tasks
+      const tasksWithAssignments = formattedTasks.map(task => {
+        const assignments = taskAssignments.filter(
+          assignment => assignment.taskId === task.id
+        );
+        
+        return {
+          ...task,
+          assignedStaff: assignments
+        };
+      });
+      
+      setTasks(tasksWithAssignments);
       
       // Update staff assigned rooms
       const staffAssignedRooms: Record<string, string[]> = {};
-      formattedTasks.forEach(task => {
-        if (task.staffId) {
-          if (!staffAssignedRooms[task.staffId]) {
-            staffAssignedRooms[task.staffId] = [];
+      taskAssignments.forEach(assignment => {
+        const task = formattedTasks.find(t => t.id === assignment.taskId);
+        if (task && task.roomId) {
+          if (!staffAssignedRooms[assignment.staffId]) {
+            staffAssignedRooms[assignment.staffId] = [];
           }
-          staffAssignedRooms[task.staffId].push(task.roomId);
+          staffAssignedRooms[assignment.staffId].push(task.roomId);
         }
       });
       
@@ -225,23 +277,30 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Assign task
-  const assignTask = async (roomId: string, staffId: string) => {
+  // Assign task to multiple staff members
+  const assignTask = async (roomId: string, staffIds: string[], supervisorId?: string) => {
     try {
       const room = rooms.find(r => r.id === roomId);
-      const staffMember = staff.find(s => s.id === staffId);
       
-      if (!room || !staffMember) {
-        toast.error('Room or staff member not found');
+      if (!room) {
+        toast.error('Room not found');
         return;
       }
+      
+      if (staffIds.length === 0) {
+        toast.error('At least one staff member must be assigned');
+        return;
+      }
+      
+      console.log('Assigning task:', { roomId, staffIds, supervisorId });
       
       // Create new task in Supabase
       const { data, error } = await supabase
         .from('cleaning_tasks')
         .insert({
           room_id: roomId,
-          staff_id: staffId,
+          staff_id: staffIds[0], // Keep this for backward compatibility
+          supervisor_id: supervisorId,
           status: 'pending',
           scheduled_date: new Date().toISOString(),
           notes: ''
@@ -250,37 +309,47 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .single();
       
       if (error) {
-        throw error;
+        console.error('Error creating task:', error);
+        toast.error('Failed to assign task: ' + error.message);
+        return;
       }
       
-      // Add new task to state
-      const newTask: CleaningTask = {
-        id: data.id,
-        roomId: data.room_id,
-        staffId: data.staff_id,
-        status: data.status as CleaningTask['status'],
-        scheduledDate: new Date(data.scheduled_date),
-        notes: data.notes || ''
-      };
+      if (!data || !data.id) {
+        console.error('No data returned from task creation');
+        toast.error('Failed to create task - no data returned');
+        return;
+      }
       
-      setTasks(prevTasks => [...prevTasks, newTask]);
+      console.log('Task created:', data);
       
-      // Update staff assigned rooms
-      setStaff(prevStaff => 
-        prevStaff.map(s => 
-          s.id === staffId 
-            ? { 
-                ...s, 
-                assignedRooms: [...s.assignedRooms, roomId] 
-              } 
-            : s
-        )
-      );
+      // Create task assignments for all staff members
+      const assignments = staffIds.map(staffId => ({
+        task_id: data.id,
+        staff_id: staffId
+      }));
       
-      toast.success(`Task assigned to ${staffMember.name}`);
-    } catch (error) {
+      const { error: assignmentError } = await supabase
+        .from('task_assignments')
+        .insert(assignments);
+      
+      if (assignmentError) {
+        console.error('Error creating assignments:', assignmentError);
+        toast.error('Failed to assign staff members: ' + assignmentError.message);
+        return;
+      }
+      
+      // Fetch updated data to refresh the UI
+      await fetchTasks();
+      
+      const staffNames = staffIds.map(id => {
+        const s = staff.find(s => s.id === id);
+        return s ? s.name : 'Unknown';
+      }).join(', ');
+      
+      toast.success(`Task assigned to ${staffNames}`);
+    } catch (error: any) {
       console.error('Error assigning task:', error);
-      toast.error('Failed to assign task');
+      toast.error(`Failed to assign task: ${error.message || 'Unknown error'}`);
     }
   };
 
@@ -403,6 +472,11 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Get tasks for a specific supervisor
+  const getSupervisorTasks = (supervisorId: string) => {
+    return tasks.filter(task => task.supervisorId === supervisorId);
+  };
+
   return (
     <HotelContext.Provider
       value={{
@@ -416,7 +490,9 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateTaskStatus,
         addRoom,
         addStaff,
-        fetchRooms // Exposing the fetchRooms function
+        fetchRooms,
+        fetchTasks,
+        getSupervisorTasks
       }}
     >
       {children}

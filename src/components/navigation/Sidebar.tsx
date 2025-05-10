@@ -1,134 +1,148 @@
 
 import React from 'react';
-import { useLocation } from 'react-router-dom';
-import { 
-  Hotel, 
-  CalendarDays, 
-  Clock, 
-  House, 
-  Trash, 
-  LogOut, 
-  ChevronLeft, 
-  ChevronRight,
-  Moon, 
-  Sun,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
 import NavItem from './NavItem';
-import { useToast } from '@/hooks/use-toast';
+import { Home, CalendarRange, ClipboardList, Users, Building2, ClipboardCheck, LogOut } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
+import { Separator } from '@/components/ui/separator';
 
 interface SidebarProps {
-  collapsed: boolean;
-  toggleSidebar: () => void;
-  theme: 'light' | 'dark';
-  toggleTheme: () => void;
+  collapsed?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar, theme, toggleTheme }) => {
+const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
   const location = useLocation();
-  const { signOut } = useAuth();
-  const { toast } = useToast();
+  const { user, signOut } = useAuth();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isSupervisor, setIsSupervisor] = useState(false);
   
-  const navItems = [
-    { 
-      to: '/', 
-      label: 'Dashboard', 
-      icon: <Hotel className="h-4 w-4" /> 
-    },
-    { 
-      to: '/rooms', 
-      label: 'Rooms', 
-      icon: <House className="h-4 w-4" /> 
-    },
-    { 
-      to: '/schedule', 
-      label: 'Schedule', 
-      icon: <CalendarDays className="h-4 w-4" /> 
-    },
-    { 
-      to: '/tasks', 
-      label: 'Tasks', 
-      icon: <Trash className="h-4 w-4" /> 
-    },
-    { 
-      to: '/staff', 
-      label: 'Staff', 
-      icon: <Clock className="h-4 w-4" /> 
-    },
-  ];
+  // Fetch the user's role from the staff table if they are logged in
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('staff')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (data) {
+          setUserRole(data.role);
+          setIsSupervisor(data.role === 'Supervisor' || data.role === 'Manager');
+        }
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+      }
+    };
+    
+    fetchUserRole();
+  }, [user]);
+  
+  const handleSignOut = () => {
+    signOut();
+  };
   
   return (
-    <div 
-      className={cn(
-        "bg-white dark:bg-sidebar shadow-sm border-r dark:border-sidebar-border transition-all duration-300 ease-in-out",
-        collapsed ? "w-16" : "w-64"
-      )}
-    >
-      <div className={cn("p-4 border-b dark:border-sidebar-border flex items-center justify-between", 
-        collapsed ? "flex-col" : "")}>
-        <div className={cn("flex items-center", collapsed ? "flex-col" : "space-x-2")}>
-          <Hotel className="h-6 w-6 text-hotel-primary" />
-          {!collapsed && <h1 className="text-xl font-bold text-hotel-dark dark:text-white">HouseHarmony</h1>}
-        </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="ml-auto" 
-          onClick={toggleSidebar}
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
+    <div className={cn(
+      "flex flex-col h-full bg-background border-r transition-all duration-300",
+      collapsed ? "w-[70px]" : "w-[240px]"
+    )}>
+      <div className="px-4 py-6 flex items-center justify-center">
+        {collapsed ? (
+          <Building2 className="h-6 w-6" />
+        ) : (
+          <div className="flex items-center space-x-2">
+            <Building2 className="h-6 w-6" />
+            <h1 className="text-2xl font-semibold">CleanSweep</h1>
+          </div>
+        )}
       </div>
-      
-      {!collapsed && (
-        <p className="text-xs text-muted-foreground dark:text-sidebar-foreground/70 px-4 pt-1">Hotel Management System</p>
-      )}
-      
-      <div className="p-4">
-        <nav className="space-y-1">
-          {navItems.map((item) => (
-            <NavItem 
-              key={item.to}
-              to={item.to}
-              label={item.label}
-              icon={item.icon}
-              active={location.pathname === item.to}
+      <ScrollArea className="flex-1 px-2">
+        <div className="space-y-1 py-2">
+          <NavItem
+            to="/"
+            icon={<Home className="h-4 w-4" />}
+            label="Dashboard"
+            active={location.pathname === '/'}
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/rooms"
+            icon={<Building2 className="h-4 w-4" />}
+            label="Rooms"
+            active={location.pathname === '/rooms'}
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/tasks"
+            icon={<ClipboardList className="h-4 w-4" />}
+            label="Tasks"
+            active={location.pathname === '/tasks'}
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/staff"
+            icon={<Users className="h-4 w-4" />}
+            label="Staff"
+            active={location.pathname === '/staff'}
+            collapsed={collapsed}
+          />
+          
+          {isSupervisor && (
+            <NavItem
+              to="/supervisor-tasks"
+              icon={<ClipboardCheck className="h-4 w-4" />}
+              label="Supervisor Dashboard"
+              active={location.pathname === '/supervisor-tasks'}
               collapsed={collapsed}
             />
-          ))}
-        </nav>
-      </div>
-      <div className="p-4 mt-auto border-t dark:border-sidebar-border">
-        <div className="flex mb-2 justify-between">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={toggleTheme} 
-            className="dark:text-white"
-          >
-            {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-          </Button>
-          
-          {!collapsed && (
-            <span className="text-xs text-muted-foreground dark:text-sidebar-foreground/70 flex items-center">
-              {theme === 'light' ? 'Light' : 'Dark'} mode
-            </span>
           )}
         </div>
+      </ScrollArea>
+      <div className="px-2 py-4 border-t">
+        <div className={cn(
+          "flex items-center justify-between px-3 py-2",
+          collapsed ? "justify-center" : "justify-between"
+        )}>
+          <div className={cn(
+            "flex items-center gap-3",
+            collapsed ? "justify-center" : ""
+          )}>
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-xs font-semibold">
+                {user?.email ? user.email.substring(0, 2).toUpperCase() : 'GU'}
+              </span>
+            </div>
+            {!collapsed && (
+              <div className="text-sm">
+                <p className="font-semibold truncate max-w-[120px]">
+                  {user?.email || 'Guest User'}
+                </p>
+                <p className="text-xs text-muted-foreground">{userRole || 'No role'}</p>
+              </div>
+            )}
+          </div>
+        </div>
         
-        <Button 
-          variant="outline" 
-          className={cn(
-            "justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 dark:border-sidebar-border",
-            collapsed ? "w-full px-2" : "w-full"
-          )}
-          onClick={signOut}
-        >
-          <LogOut className={collapsed ? "" : "mr-2"} size={16} />
-          {!collapsed && "Sign Out"}
-        </Button>
+        <Separator className="my-2" />
+        
+        <NavItem
+          to="/auth"
+          icon={<LogOut className="h-4 w-4" />}
+          label="Sign Out"
+          active={false}
+          collapsed={collapsed}
+          onClick={handleSignOut}
+        />
       </div>
     </div>
   );
