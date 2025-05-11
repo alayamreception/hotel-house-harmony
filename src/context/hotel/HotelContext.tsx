@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Room, Staff, CleaningTask, DashboardStats } from '@/types';
+import { Room, Staff, CleaningTask } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '../AuthContext';
@@ -9,14 +9,15 @@ import { useRooms } from './useRooms';
 import { useStaff } from './useStaff';
 import { useTasks } from './useTasks';
 import { useStats } from './useStats';
+import { useUser } from './useUser';
 
 const HotelContext = createContext<HotelContextType | undefined>(undefined);
 
 export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [selectedCottage, setSelectedCottage] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<any | null>(null);
   
   const { session } = useAuth();
+  const { userProfile } = useUser();
   
   // Use our custom hooks
   const roomsManager = useRooms(selectedCottage);
@@ -25,32 +26,13 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   
   // Compute stats from rooms and tasks
   const stats = useStats(roomsManager.rooms, tasksManager.tasks);
-  
-  // Fetch user profile to get assigned cottage
+
+  // Initialize selected cottage based on user profile when it loads
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!session?.user?.id) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (error) throw error;
-        
-        setUserProfile(data);
-        if (data?.assigned_cottage && !selectedCottage) {
-          setSelectedCottage(data.assigned_cottage);
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-      }
-    };
-    
-    fetchUserProfile();
-  }, [session, selectedCottage]);
+    if (userProfile?.assigned_cottage && !selectedCottage) {
+      setSelectedCottage(userProfile.assigned_cottage);
+    }
+  }, [userProfile, selectedCottage]);
 
   // Fetch data when the component mounts or when the user logs in or cottage changes
   useEffect(() => {

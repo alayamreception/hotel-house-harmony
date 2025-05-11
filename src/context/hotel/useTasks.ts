@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { CleaningTask, TaskAssignment, StaffBasicInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,280 +7,142 @@ export function useTasks(selectedCottage: string | null) {
   const [tasks, setTasks] = useState<CleaningTask[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch task assignments separately to avoid type recursion
-  const fetchTaskAssignments = async () => {
-    try {
-      // Step 1: First, fetch just the basic assignment data
-      const { data: assignmentData, error: assignmentError } = await supabase
-        .from('task_assignments')
-        .select('id, task_id, staff_id, assigned_at');
-      
-      if (assignmentError) throw assignmentError;
-      
-      // Initialize assignments with basic data, no staff info yet
-      const basicAssignments = assignmentData.map(assignment => ({
-        id: assignment.id,
-        taskId: assignment.task_id,
-        staffId: assignment.staff_id,
-        assignedAt: new Date(assignment.assigned_at)
-      }));
-      
-      // Step 2: Get unique staff IDs to fetch
-      const staffIds = [...new Set(assignmentData.map(a => a.staff_id))];
-      
-      // Step 3: If we have staff IDs, fetch their information
-      if (staffIds.length > 0) {
-        const { data: staffData, error: staffError } = await supabase
-          .from('staff')
-          .select('id, name, role, shift, avatar')
-          .in('id', staffIds);
-        
-        if (staffError) throw staffError;
-        
-        // Create a lookup map for staff data
-        const staffMap: Record<string, StaffBasicInfo> = {};
-        staffData.forEach(s => {
-          staffMap[s.id] = {
-            id: s.id,
-            name: s.name,
-            role: s.role,
-            shift: s.shift,
-            avatar: s.avatar
-          };
-        });
-        
-        // Combine the assignment data with staff info
-        const formattedAssignments = basicAssignments.map(assignment => ({
-          ...assignment,
-          staff: staffMap[assignment.staffId]
-        }));
-        
-        return formattedAssignments;
-      }
-      
-      // Return basic assignments if no staff info was needed/available
-      return basicAssignments;
-    } catch (error) {
-      console.error('Error fetching task assignments:', error);
-      toast.error('Failed to load task assignments');
-      return [];
-    }
-  };
-
-  // Fetch tasks data
-  const fetchTasks = async () => {
+  const fetchTasks = async (): Promise<void> => {
     try {
       setLoading(true);
       
-      let query = supabase.from('cleaning_tasks').select('*');
-      
+      // First, fetch all cleaning tasks
+      const tasksQuery = supabase
+        .from('cleaning_tasks')
+        .select('*');
+        
       // Filter by cottage if selected
       if (selectedCottage) {
-        query = query.eq('cottage_type', selectedCottage);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Step 1: Format the tasks without assignments first
-      const formattedTasks: CleaningTask[] = data.map(task => ({
-        id: task.id,
-        roomId: task.room_id,
-        staffId: task.staff_id,
-        supervisorId: task.supervisor_id,
-        status: task.status as CleaningTask['status'],
-        scheduledDate: new Date(task.scheduled_date),
-        completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
-        notes: task.notes || '',
-        booking_id: task.booking_id,
-        checkout_extended: task.checkout_extended || false,
-        arrival_time: task.arrival_time ? new Date(task.arrival_time) : undefined,
-        departure_time: task.departure_time ? new Date(task.departure_time) : undefined,
-        assignedStaff: [] // Initialize empty, we'll fill this later
-      }));
-      
-      // Step 2: Get assignment data separately to avoid type recursion
-      const assignments = await fetchTaskAssignments();
-      
-      // Step 3: Create a map of task ID to its assignments
-      const taskAssignmentMap: Record<string, TaskAssignment[]> = {};
-      assignments.forEach(assignment => {
-        if (!taskAssignmentMap[assignment.taskId]) {
-          taskAssignmentMap[assignment.taskId] = [];
+        const { data: roomsWithType, error: roomsError } = await supabase
+          .from('rooms')
+          .select('id')
+          .eq('type', selectedCottage);
+          
+        if (roomsError) throw roomsError;
+        
+        if (roomsWithType && roomsWithType.length > 0) {
+          const roomIds = roomsWithType.map(r => r.id);
+          tasksQuery.in('room_id', roomIds);
         }
-        taskAssignmentMap[assignment.taskId].push(assignment);
+      }
+      
+      const { data: tasksData, error: tasksError } = await tasksQuery;
+      
+      if (tasksError) throw tasksError;
+      
+      // Fetch all task assignments separately
+      const { data: assignmentsData, error: assignmentsError } = await supabase
+        .from('task_assignments')
+        .select('*');
+        
+      if (assignmentsError) throw assignmentsError;
+      
+      // Fetch staff data for assignments
+      const staffIds = [...new Set(assignmentsData?.map(a => a.staff_id) || [])];
+      const { data: staffData, error: staffError } = await supabase
+        .from('staff')
+        .select('id, name, role, shift, avatar')
+        .in('id', staffIds.length > 0 ? staffIds : ['no-staff']);
+        
+      if (staffError) throw staffError;
+      
+      // Create a map of staff by ID for quick lookup
+      const staffMap = new Map<string, StaffBasicInfo>();
+      staffData?.forEach(staff => {
+        staffMap.set(staff.id, {
+          id: staff.id,
+          name: staff.name,
+          role: staff.role,
+          shift: staff.shift,
+          avatar: staff.avatar
+        });
       });
       
-      // Step 4: Merge assignments with tasks
-      const tasksWithAssignments = formattedTasks.map(task => ({
-        ...task,
-        assignedStaff: taskAssignmentMap[task.id] || []
-      }));
+      // Create a map of assignments by task ID
+      const assignmentsByTask = new Map<string, TaskAssignment[]>();
       
-      setTasks(tasksWithAssignments);
+      assignmentsData?.forEach(a => {
+        const staff = staffMap.get(a.staff_id);
+        
+        if (!assignmentsByTask.has(a.task_id)) {
+          assignmentsByTask.set(a.task_id, []);
+        }
+        
+        const assignment: TaskAssignment = {
+          id: a.id,
+          taskId: a.task_id,
+          staffId: a.staff_id,
+          assignedAt: new Date(a.assigned_at || Date.now()),
+          staff: staff
+        };
+        
+        assignmentsByTask.get(a.task_id)?.push(assignment);
+      });
       
-      return {
-        tasks: tasksWithAssignments,
-        assignments
-      };
+      // Map tasks to the final format with typed properties
+      const formattedTasks: CleaningTask[] = tasksData?.map(task => {
+        return {
+          id: task.id,
+          roomId: task.room_id || '',
+          staffId: task.staff_id || '',
+          supervisorId: task.supervisor_id,
+          status: task.status as CleaningTask['status'],
+          scheduledDate: new Date(task.scheduled_date),
+          completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
+          notes: task.notes || '',
+          assignedStaff: assignmentsByTask.get(task.id) || [],
+          booking_id: task.booking_id,
+          checkout_extended: task.checkout_extended,
+          arrival_time: task.arrival_time ? new Date(task.arrival_time) : undefined,
+          departure_time: task.departure_time ? new Date(task.departure_time) : undefined
+        };
+      }) || [];
       
+      setTasks(formattedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
-      toast.error('Failed to load tasks');
-      return { tasks: [], assignments: [] };
+      toast.error('Failed to fetch tasks');
     } finally {
       setLoading(false);
     }
   };
 
-  // Create a new task assignment
-  const updateTaskAssignment = async (taskId: string, staffIds: string[], supervisorId?: string) => {
-    try {
-      // First, delete existing assignments for this task
-      const { error: deleteError } = await supabase
-        .from('task_assignments')
-        .delete()
-        .eq('task_id', taskId);
-      
-      if (deleteError) {
-        throw deleteError;
-      }
-      
-      // Update the task with the new supervisor if provided
-      if (supervisorId) {
-        const { error: updateError } = await supabase
-          .from('cleaning_tasks')
-          .update({ supervisor_id: supervisorId })
-          .eq('id', taskId);
-        
-        if (updateError) throw updateError;
-      }
-      
-      // Create new assignments for all staff members
-      const assignments = staffIds.map(staffId => ({
-        task_id: taskId,
-        staff_id: staffId,
-        assigned_at: new Date().toISOString()
-      }));
-      
-      const { error: assignmentError } = await supabase
-        .from('task_assignments')
-        .insert(assignments);
-      
-      if (assignmentError) {
-        throw assignmentError;
-      }
-      
-      // Return true to indicate success
-      return true;
-    } catch (error) {
-      console.error('Error updating task assignment:', error);
-      toast.error('Failed to update task assignment');
-      return false;
-    }
-  };
+  // Add other task-related functions that can use the properly typed data
+  // ... (Rest of the functions unchanged)
 
-  // Assign task to multiple staff members
-  const assignTask = async (roomId: string, staffIds: string[], roomType: string, supervisorId?: string) => {
-    try {
-      if (staffIds.length === 0) {
-        toast.error('At least one staff member must be assigned');
-        return false;
-      }
-      
-      console.log('Assigning task:', { roomId, staffIds, supervisorId });
-      
-      // Create new task in Supabase
-      const { data, error } = await supabase
-        .from('cleaning_tasks')
-        .insert({
-          room_id: roomId,
-          staff_id: staffIds[0], // Keep this for backward compatibility
-          supervisor_id: supervisorId,
-          status: 'pending',
-          scheduled_date: new Date().toISOString(),
-          notes: '',
-          cottage_type: roomType // Add the cottage type to the task
-        })
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error creating task:', error);
-        toast.error('Failed to assign task: ' + error.message);
-        return false;
-      }
-      
-      if (!data || !data.id) {
-        console.error('No data returned from task creation');
-        toast.error('Failed to create task - no data returned');
-        return false;
-      }
-      
-      console.log('Task created:', data);
-      
-      // Create task assignments for all staff members
-      const assignments = staffIds.map(staffId => ({
-        task_id: data.id,
-        staff_id: staffId
-      }));
-      
-      const { error: assignmentError } = await supabase
-        .from('task_assignments')
-        .insert(assignments);
-      
-      if (assignmentError) {
-        console.error('Error creating assignments:', assignmentError);
-        toast.error('Failed to assign staff members: ' + assignmentError.message);
-        return false;
-      }
-      
-      return true;
-    } catch (error: any) {
-      console.error('Error assigning task:', error);
-      toast.error(`Failed to assign task: ${error.message || 'Unknown error'}`);
-      return false;
-    }
-  };
-
-  // Update task status
   const updateTaskStatus = async (taskId: string, status: CleaningTask['status']) => {
     try {
-      const updateData: any = { 
-        status, 
-        updated_at: new Date().toISOString()
-      };
-      
-      if (status === 'completed') {
-        updateData.completed_date = new Date().toISOString();
-      }
-      
       const { error } = await supabase
         .from('cleaning_tasks')
-        .update(updateData)
+        .update({
+          status,
+          completed_date: status === 'completed' ? new Date().toISOString() : null
+        })
         .eq('id', taskId);
-      
+        
       if (error) {
-        throw error;
+        console.error('Error updating task status:', error);
+        toast.error('Failed to update task status');
+        return false;
       }
       
+      // Update local state
       setTasks(prevTasks => 
-        prevTasks.map(task => {
-          if (task.id === taskId) {
-            return { 
-              ...task, 
-              status,
-              completedDate: status === 'completed' ? new Date() : task.completedDate 
-            };
-          }
-          return task;
-        })
+        prevTasks.map(t => 
+          t.id === taskId ? {
+            ...t,
+            status,
+            completedDate: status === 'completed' ? new Date() : t.completedDate
+          } : t
+        )
       );
       
-      toast.success(`Task status updated to ${status}`);
+      toast.success(`Task marked as ${status}`);
       return true;
     } catch (error) {
       console.error('Error updating task status:', error);
@@ -290,45 +151,141 @@ export function useTasks(selectedCottage: string | null) {
     }
   };
 
-  // Get tasks for a specific supervisor
+  const assignTask = async (roomId: string, staffIds: string[], cottageType: string, supervisorId?: string) => {
+    try {
+      // Create a new cleaning task
+      const { data: taskData, error: taskError } = await supabase
+        .from('cleaning_tasks')
+        .insert({
+          room_id: roomId,
+          status: 'pending',
+          scheduled_date: new Date().toISOString(),
+          supervisor_id: supervisorId,
+          cottage_type: cottageType
+        })
+        .select()
+        .single();
+        
+      if (taskError) {
+        console.error('Error creating task:', taskError);
+        toast.error('Failed to create cleaning task');
+        return false;
+      }
+      
+      // Create task assignments for each staff member
+      const assignments = staffIds.map(staffId => ({
+        task_id: taskData.id,
+        staff_id: staffId,
+        assigned_at: new Date().toISOString()
+      }));
+      
+      const { error: assignmentsError } = await supabase
+        .from('task_assignments')
+        .insert(assignments);
+        
+      if (assignmentsError) {
+        console.error('Error creating task assignments:', assignmentsError);
+        toast.error('Failed to assign staff to task');
+        return false;
+      }
+      
+      // Fetch the updated task to get the full data
+      await fetchTasks();
+      return true;
+    } catch (error) {
+      console.error('Error assigning task:', error);
+      toast.error('Failed to assign task');
+      return false;
+    }
+  };
+
+  const updateTaskAssignment = async (taskId: string, staffIds: string[], supervisorId?: string) => {
+    try {
+      // Update the task supervisor if provided
+      if (supervisorId) {
+        const { error: taskError } = await supabase
+          .from('cleaning_tasks')
+          .update({ supervisor_id: supervisorId })
+          .eq('id', taskId);
+          
+        if (taskError) {
+          console.error('Error updating task supervisor:', taskError);
+          toast.error('Failed to update task supervisor');
+          return false;
+        }
+      }
+      
+      // Delete existing assignments
+      const { error: deleteError } = await supabase
+        .from('task_assignments')
+        .delete()
+        .eq('task_id', taskId);
+        
+      if (deleteError) {
+        console.error('Error deleting existing assignments:', deleteError);
+        toast.error('Failed to update task assignments');
+        return false;
+      }
+      
+      // Create new assignments
+      const assignments = staffIds.map(staffId => ({
+        task_id: taskId,
+        staff_id: staffId,
+        assigned_at: new Date().toISOString()
+      }));
+      
+      const { error: assignmentsError } = await supabase
+        .from('task_assignments')
+        .insert(assignments);
+        
+      if (assignmentsError) {
+        console.error('Error creating task assignments:', assignmentsError);
+        toast.error('Failed to assign staff to task');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating task assignment:', error);
+      toast.error('Failed to update task assignment');
+      return false;
+    }
+  };
+
   const getSupervisorTasks = (supervisorId: string) => {
     return tasks.filter(task => task.supervisorId === supervisorId);
   };
 
-  // Extend room stay
   const extendRoomStay = async (roomId: string) => {
     try {
-      // Find any existing tasks for this room
-      const roomTasks = tasks.filter(task => task.roomId === roomId);
+      // Find tasks for this room
+      const roomTasks = tasks.filter(t => t.roomId === roomId);
       
       if (roomTasks.length === 0) {
-        toast.error('No tasks found for this room');
+        toast.error('No task found for this room');
         return false;
       }
       
-      // Update the most recent task to mark it as extended
-      const latestTask = roomTasks.reduce((latest, current) => {
-        return !latest.scheduledDate || (current.scheduledDate > latest.scheduledDate) 
-          ? current 
-          : latest;
-      }, roomTasks[0]);
+      // Update the latest task for this room
+      const latestTask = roomTasks.sort((a, b) => 
+        b.scheduledDate.getTime() - a.scheduledDate.getTime()
+      )[0];
       
       const { error } = await supabase
         .from('cleaning_tasks')
-        .update({
-          checkout_extended: true,
-          updated_at: new Date().toISOString()
-        })
+        .update({ checkout_extended: true })
         .eq('id', latestTask.id);
-      
-      if (error) throw error;
+        
+      if (error) {
+        console.error('Error extending stay:', error);
+        toast.error('Failed to extend stay');
+        return false;
+      }
       
       // Update local state
       setTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === latestTask.id 
-            ? { ...task, checkout_extended: true } 
-            : task
+        prevTasks.map(t => 
+          t.id === latestTask.id ? { ...t, checkout_extended: true } : t
         )
       );
       
@@ -339,7 +296,7 @@ export function useTasks(selectedCottage: string | null) {
       return false;
     }
   };
-
+  
   return {
     tasks,
     loading,
