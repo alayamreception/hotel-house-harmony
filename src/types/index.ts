@@ -22,6 +22,23 @@ export interface Staff {
   avatar?: string;
 }
 
+// Create a simpler type for staff info to prevent recursive type issues
+export interface StaffBasicInfo {
+  id: string;
+  name: string;
+  role: string;
+  shift: string;
+  avatar?: string;
+}
+
+export interface TaskAssignment {
+  id: string;
+  taskId: string;
+  staffId: string;
+  assignedAt: Date;
+  staff?: StaffBasicInfo;
+}
+
 export interface CleaningTask {
   id: string;
   roomId: string;
@@ -36,23 +53,6 @@ export interface CleaningTask {
   checkout_extended?: boolean;
   arrival_time?: Date;
   departure_time?: Date;
-}
-
-export interface TaskAssignment {
-  id: string;
-  taskId: string;
-  staffId: string;
-  assignedAt: Date;
-  staff?: StaffBasicInfo;
-}
-
-// Create a simpler type for staff info to prevent recursive type issues
-export interface StaffBasicInfo {
-  id: string;
-  name: string;
-  role: string;
-  shift: string;
-  avatar?: string;
 }
 
 export interface DashboardStats {

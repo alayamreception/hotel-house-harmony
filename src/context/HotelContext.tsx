@@ -177,41 +177,74 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Fetch task assignments - UPDATED to fix recursive type issue
+  // Fetch task assignments - Fixed to completely resolve recursive type issues
   const fetchTaskAssignments = async () => {
     try {
-      // Use specific fields selection to avoid recursive type issues
+      // Separate query to avoid recursive type issues
       const { data, error } = await supabase
         .from('task_assignments')
-        .select('id, task_id, staff_id, assigned_at, staff:staff(id, name, role, shift, avatar)');
+        .select(`
+          id, 
+          task_id, 
+          staff_id, 
+          assigned_at
+        `);
       
       if (error) {
         throw error;
       }
       
-      // Map the response to our defined types to avoid recursion
-      const formattedAssignments: TaskAssignment[] = data.map(assignment => ({
+      // Process data without nested staff objects first
+      const basicAssignments = data.map(assignment => ({
         id: assignment.id,
         taskId: assignment.task_id,
         staffId: assignment.staff_id,
         assignedAt: new Date(assignment.assigned_at),
-        staff: assignment.staff ? {
-          id: assignment.staff.id,
-          name: assignment.staff.name,
-          role: assignment.staff.role,
-          shift: assignment.staff.shift,
-          avatar: assignment.staff.avatar
-        } : undefined
+        staff: undefined
       }));
       
-      setTaskAssignments(formattedAssignments);
+      // Then fetch staff data separately
+      const staffIds = [...new Set(data.map(a => a.staff_id))];
+      
+      if (staffIds.length > 0) {
+        const { data: staffData, error: staffError } = await supabase
+          .from('staff')
+          .select('id, name, role, shift, avatar')
+          .in('id', staffIds);
+        
+        if (staffError) {
+          throw staffError;
+        }
+        
+        // Create a map for quick lookup
+        const staffMap: Record<string, StaffBasicInfo> = {};
+        staffData.forEach(s => {
+          staffMap[s.id] = {
+            id: s.id,
+            name: s.name,
+            role: s.role,
+            shift: s.shift,
+            avatar: s.avatar
+          };
+        });
+        
+        // Assign staff info to assignments
+        const formattedAssignments: TaskAssignment[] = basicAssignments.map(assignment => ({
+          ...assignment,
+          staff: staffMap[assignment.staffId]
+        }));
+        
+        setTaskAssignments(formattedAssignments);
+      } else {
+        setTaskAssignments(basicAssignments);
+      }
     } catch (error) {
       console.error('Error fetching task assignments:', error);
       toast.error('Failed to load task assignments');
     }
   };
 
-  // Fetch tasks data - UPDATED to work with the new type structure
+  // Fetch tasks data - UPDATED to completely fix recursive type issue
   const fetchTasks = async () => {
     try {
       setLoading(prev => ({ ...prev, tasks: true }));
@@ -244,10 +277,10 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         departure_time: task.departure_time ? new Date(task.departure_time) : undefined
       }));
       
-      // Fetch task assignments to associate with tasks
+      // Fetch task assignments without nested relationships to avoid recursive types
       await fetchTaskAssignments();
       
-      // Merge task assignments with tasks using the predefined types
+      // Merge task assignments with tasks 
       const tasksWithAssignments = formattedTasks.map(task => {
         const assignments = taskAssignments.filter(
           assignment => assignment.taskId === task.id
