@@ -183,7 +183,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const { data, error } = await supabase
         .from('task_assignments')
-        .select('*, staff:staff(*)');
+        .select('*, staff:staff(id, name, role, shift, avatar)');
       
       if (error) {
         throw error;
