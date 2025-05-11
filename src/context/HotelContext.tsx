@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Room, Staff, CleaningTask, DashboardStats, TaskAssignment } from '../types';
+import { Room, Staff, CleaningTask, DashboardStats, TaskAssignment, StaffBasicInfo } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from './AuthContext';
@@ -178,17 +177,19 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Fetch task assignments
+  // Fetch task assignments - UPDATED to fix recursive type issue
   const fetchTaskAssignments = async () => {
     try {
+      // Use specific fields selection to avoid recursive type issues
       const { data, error } = await supabase
         .from('task_assignments')
-        .select('*, staff:staff(id, name, role, shift, avatar)');
+        .select('id, task_id, staff_id, assigned_at, staff:staff(id, name, role, shift, avatar)');
       
       if (error) {
         throw error;
       }
       
+      // Map the response to our defined types to avoid recursion
       const formattedAssignments: TaskAssignment[] = data.map(assignment => ({
         id: assignment.id,
         taskId: assignment.task_id,
@@ -199,7 +200,6 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           name: assignment.staff.name,
           role: assignment.staff.role,
           shift: assignment.staff.shift,
-          assignedRooms: [],
           avatar: assignment.staff.avatar
         } : undefined
       }));
@@ -211,7 +211,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Fetch tasks data
+  // Fetch tasks data - UPDATED to work with the new type structure
   const fetchTasks = async () => {
     try {
       setLoading(prev => ({ ...prev, tasks: true }));
@@ -247,7 +247,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // Fetch task assignments to associate with tasks
       await fetchTaskAssignments();
       
-      // Merge task assignments with tasks
+      // Merge task assignments with tasks using the predefined types
       const tasksWithAssignments = formattedTasks.map(task => {
         const assignments = taskAssignments.filter(
           assignment => assignment.taskId === task.id

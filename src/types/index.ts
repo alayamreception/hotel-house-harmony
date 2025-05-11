@@ -43,7 +43,16 @@ export interface TaskAssignment {
   taskId: string;
   staffId: string;
   assignedAt: Date;
-  staff?: Staff;
+  staff?: StaffBasicInfo;
+}
+
+// Create a simpler type for staff info to prevent recursive type issues
+export interface StaffBasicInfo {
+  id: string;
+  name: string;
+  role: string;
+  shift: string;
+  avatar?: string;
 }
 
 export interface DashboardStats {
