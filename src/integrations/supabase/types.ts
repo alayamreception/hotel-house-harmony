@@ -11,37 +11,55 @@ export type Database = {
     Tables: {
       cleaning_tasks: {
         Row: {
+          arrival_time: string | null
+          booking_id: string | null
+          checkout_extended: boolean | null
+          cleaning_end_time: string | null
+          cleaning_start_time: string | null
+          cleaning_type: string | null
           completed_date: string | null
           created_at: string
+          departure_time: string | null
           id: string
           notes: string | null
           room_id: string | null
           scheduled_date: string
-          staff_id: string | null
           status: string
           supervisor_id: string | null
           updated_at: string
         }
         Insert: {
+          arrival_time?: string | null
+          booking_id?: string | null
+          checkout_extended?: boolean | null
+          cleaning_end_time?: string | null
+          cleaning_start_time?: string | null
+          cleaning_type?: string | null
           completed_date?: string | null
           created_at?: string
+          departure_time?: string | null
           id?: string
           notes?: string | null
           room_id?: string | null
           scheduled_date: string
-          staff_id?: string | null
           status: string
           supervisor_id?: string | null
           updated_at?: string
         }
         Update: {
+          arrival_time?: string | null
+          booking_id?: string | null
+          checkout_extended?: boolean | null
+          cleaning_end_time?: string | null
+          cleaning_start_time?: string | null
+          cleaning_type?: string | null
           completed_date?: string | null
           created_at?: string
+          departure_time?: string | null
           id?: string
           notes?: string | null
           room_id?: string | null
           scheduled_date?: string
-          staff_id?: string | null
           status?: string
           supervisor_id?: string | null
           updated_at?: string
@@ -55,13 +73,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "cleaning_tasks_staff_id_fkey"
-            columns: ["staff_id"]
-            isOneToOne: false
-            referencedRelation: "staff"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "cleaning_tasks_supervisor_id_fkey"
             columns: ["supervisor_id"]
             isOneToOne: false
@@ -70,8 +81,84 @@ export type Database = {
           },
         ]
       }
+      cleaning_tasks_archive: {
+        Row: {
+          arrival_time: string | null
+          booking_id: string | null
+          checkout_extended: boolean | null
+          cleaning_end_time: string | null
+          cleaning_start_time: string | null
+          completed_date: string | null
+          created_at: string | null
+          departure_time: string | null
+          id: string | null
+          notes: string | null
+          room_id: string | null
+          scheduled_date: string | null
+          status: string | null
+          supervisor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          arrival_time?: string | null
+          booking_id?: string | null
+          checkout_extended?: boolean | null
+          cleaning_end_time?: string | null
+          cleaning_start_time?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          departure_time?: string | null
+          id?: string | null
+          notes?: string | null
+          room_id?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          supervisor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          arrival_time?: string | null
+          booking_id?: string | null
+          checkout_extended?: boolean | null
+          cleaning_end_time?: string | null
+          cleaning_start_time?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          departure_time?: string | null
+          id?: string | null
+          notes?: string | null
+          room_id?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          supervisor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      import_log: {
+        Row: {
+          id: string
+          import_timestamp: string
+          records_imported: number
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          import_timestamp?: string
+          records_imported: number
+          user_id: string
+        }
+        Update: {
+          id?: string
+          import_timestamp?: string
+          records_imported?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          assigned_cottage: string | null
           avatar_url: string | null
           created_at: string
           full_name: string | null
@@ -81,6 +168,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          assigned_cottage?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
@@ -90,6 +178,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          assigned_cottage?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
@@ -100,37 +189,81 @@ export type Database = {
         }
         Relationships: []
       }
+      room_log: {
+        Row: {
+          created_at: string
+          id: string
+          log_timestamp: string
+          log_type: string
+          notes: string | null
+          room_id: string
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          log_timestamp?: string
+          log_type: string
+          notes?: string | null
+          room_id: string
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          log_timestamp?: string
+          log_type?: string
+          notes?: string | null
+          room_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_log_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           created_at: string
+          early_checkout: boolean | null
           id: string
           last_cleaned: string | null
           notes: string | null
           priority: number | null
           room_number: string
           status: string
+          today_checkout: boolean | null
           type: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          early_checkout?: boolean | null
           id?: string
           last_cleaned?: string | null
           notes?: string | null
           priority?: number | null
           room_number: string
           status: string
+          today_checkout?: boolean | null
           type: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          early_checkout?: boolean | null
           id?: string
           last_cleaned?: string | null
           notes?: string | null
           priority?: number | null
           room_number?: string
           status?: string
+          today_checkout?: boolean | null
           type?: string
           updated_at?: string
         }
@@ -142,8 +275,8 @@ export type Database = {
           created_at: string
           id: string
           name: string
-          role: string
-          shift: string
+          role: string | null
+          shift: string | null
           updated_at: string
           user_id: string | null
         }
@@ -152,8 +285,8 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
-          role: string
-          shift: string
+          role?: string | null
+          shift?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -162,8 +295,8 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
-          role?: string
-          shift?: string
+          role?: string | null
+          shift?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -208,44 +341,29 @@ export type Database = {
       tasks_for_the_day: {
         Row: {
           arrival: string | null
-          cleaned_time: string | null
           cleaning_type: string | null
-          cottage: string | null
           dep: string | null
           id: number
           remarks: string | null
           room_no: string | null
-          room_type: string | null
-          sevadhar: string | null
-          status: string | null
           supervisor: string | null
         }
         Insert: {
           arrival?: string | null
-          cleaned_time?: string | null
           cleaning_type?: string | null
-          cottage?: string | null
           dep?: string | null
           id?: never
           remarks?: string | null
           room_no?: string | null
-          room_type?: string | null
-          sevadhar?: string | null
-          status?: string | null
           supervisor?: string | null
         }
         Update: {
           arrival?: string | null
-          cleaned_time?: string | null
           cleaning_type?: string | null
-          cottage?: string | null
           dep?: string | null
           id?: never
           remarks?: string | null
           room_no?: string | null
-          room_type?: string | null
-          sevadhar?: string | null
-          status?: string | null
           supervisor?: string | null
         }
         Relationships: []
@@ -255,7 +373,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      import_tasks: {
+        Args: { data: Json }
+        Returns: undefined
+      }
+      insert_cleaning_tasks: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

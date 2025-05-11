@@ -10,16 +10,25 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useHotel } from '@/context/HotelContext';
 
 interface SidebarProps {
   collapsed?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({ collapsed = true }) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isSupervisor, setIsSupervisor] = useState(false);
+  const { selectedCottage, setSelectedCottage, availableCottages } = useHotel();
   
   // Fetch the user's role from the staff table if they are logged in
   useEffect(() => {
@@ -116,29 +125,27 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false }) => {
         </div>
       </ScrollArea>
       <div className="px-2 py-4 border-t">
-        <div className={cn(
-          "flex items-center justify-between px-3 py-2",
-          collapsed ? "justify-center" : "justify-between"
-        )}>
-          <div className={cn(
-            "flex items-center gap-3",
-            collapsed ? "justify-center" : ""
-          )}>
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-xs font-semibold">
-                {user?.email ? user.email.substring(0, 2).toUpperCase() : 'GU'}
-              </span>
-            </div>
-            {!collapsed && (
-              <div className="text-sm">
-                <p className="font-semibold truncate max-w-[120px]">
-                  {user?.email || 'Guest User'}
-                </p>
-                <p className="text-xs text-muted-foreground">{userRole || 'No role'}</p>
-              </div>
-            )}
+        {!collapsed && (
+          <div className="mb-4 px-2">
+            <p className="text-xs text-muted-foreground mb-1">Select Cottage</p>
+            <Select
+              value={selectedCottage || ''}
+              onValueChange={(value) => setSelectedCottage(value === 'all' ? null : value)}
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="All Cottages" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Cottages</SelectItem>
+                {availableCottages.map((cottage) => (
+                  <SelectItem key={cottage} value={cottage}>
+                    {cottage}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
+        )}
         
         <Separator className="my-2" />
         

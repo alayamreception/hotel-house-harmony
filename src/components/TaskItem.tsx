@@ -30,6 +30,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
 
   // Get initials for avatar fallback
   const getInitials = (name: string) => {
+    if (!name) return 'NA';
     return name
       .split(' ')
       .map(part => part[0])
@@ -44,7 +45,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
           <h3 className="text-lg font-medium">Room {room.roomNumber}</h3>
           <p className="text-sm text-muted-foreground dark:text-gray-400">{room.type} Room</p>
         </div>
-        <StatusBadge status={room.status} />
+        <StatusBadge status={task.status} />
       </div>
       
       <div className="mb-2">
@@ -77,7 +78,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
           </div>
         ) : (
           <p className="text-sm">
-            <span className="font-medium">Assigned to:</span> {staff.name}
+            <span className="font-medium">Assigned to:</span> {staff?.name || 'Unassigned'}
           </p>
         )}
 
@@ -88,7 +89,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
         )}
       </div>
       
-      <div className="flex items-center gap-4 mb-3">
+      <div className="flex flex-wrap items-center gap-4 mb-3">
         <div className="flex items-center">
           <Calendar className="h-4 w-4 mr-1 text-muted-foreground dark:text-gray-400" />
           <span className="text-xs dark:text-gray-300">
@@ -106,7 +107,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
         )}
       </div>
       
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {task.status !== 'completed' && (
           <Button 
             size="sm" 

@@ -15,34 +15,54 @@ const SupervisorTasks = () => {
   const [loading, setLoading] = useState(false);
   const [supervisorId, setSupervisorId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('pending');
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userCottage, setUserCottage] = useState<string | null>(null);
   
-  // Fetch supervisor ID on component mount
+  // Fetch user profile and supervisor ID on component mount
   useEffect(() => {
-    const fetchSupervisorId = async () => {
+    const fetchUserData = async () => {
       if (!user) return;
       
       try {
         setLoading(true);
-        // Try to find the staff record linked to the current user
-        const { data, error } = await supabase
-          .from('staff')
-          .select('id, role')
-          .eq('user_id', user.id)
+        
+        // Get user profile to check role
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, assigned_cottage')
+          .eq('id', user.id)
           .maybeSingle();
         
-        if (error) throw error;
+        if (profileError) throw profileError;
         
-        if (data && (data.role === 'Supervisor' || data.role === 'Manager')) {
-          setSupervisorId(data.id);
+        if (profileData) {
+          setUserRole(profileData.role);
+          setUserCottage(profileData.assigned_cottage);
+          
+          // If not supervisor or manager in profile, check staff table
+          if (profileData.role !== 'Supervisor' && profileData.role !== 'Manager') {
+            const { data: staffData, error: staffError } = await supabase
+              .from('staff')
+              .select('id, role')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            
+            if (staffError) throw staffError;
+            
+            if (staffData && (staffData.role === 'Supervisor' || staffData.role === 'Manager')) {
+              setUserRole(staffData.role);
+              setSupervisorId(staffData.id);
+            }
+          }
         }
       } catch (error) {
-        console.error('Error fetching supervisor ID:', error);
+        console.error('Error fetching user data:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchSupervisorId();
+    fetchUserData();
   }, [user]);
   
   // Refresh tasks when the page loads
@@ -50,12 +70,31 @@ const SupervisorTasks = () => {
     fetchTasks();
   }, [fetchTasks]);
   
-  // Filter tasks assigned to this supervisor
+  // Filter tasks based on supervisor role and assigned cottage
   const supervisorTasks = useMemo(() => {
-    if (!supervisorId) return [];
+    if (!userRole) return [];
     
-    return tasks.filter(task => task.supervisorId === supervisorId);
-  }, [tasks, supervisorId]);
+    // Get all tasks for managers
+    if (userRole === 'Manager') {
+      if (userCottage) {
+        // Filter by assigned cottage if there is one
+        return tasks.filter(task => {
+          const room = rooms.find(r => r.id === task.roomId);
+          return room && room.type === userCottage;
+        });
+      } else {
+        // No cottage filter for managers
+        return tasks;
+      }
+    }
+    
+    // For supervisors, only show tasks they're assigned to
+    if (userRole === 'Supervisor' && supervisorId) {
+      return tasks.filter(task => task.supervisorId === supervisorId);
+    }
+    
+    return [];
+  }, [tasks, rooms, supervisorId, userRole, userCottage]);
   
   // Filter tasks by status
   const filteredTasks = useMemo(() => {
@@ -76,7 +115,7 @@ const SupervisorTasks = () => {
     );
   }
   
-  if (!supervisorId) {
+  if (!userRole || (userRole !== 'Supervisor' && userRole !== 'Manager')) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -99,7 +138,9 @@ const SupervisorTasks = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold tracking-tight">Supervisor Tasks</h2>
+        <h2 className="text-3xl font-bold tracking-tight">
+          {userRole === 'Manager' ? 'Management Dashboard' : 'Supervisor Dashboard'}
+        </h2>
         
         <Button variant="outline" size="sm" onClick={() => fetchTasks()}>
           Refresh
