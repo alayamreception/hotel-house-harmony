@@ -16,6 +16,7 @@ export type Database = {
           checkout_extended: boolean | null
           cleaning_end_time: string | null
           cleaning_start_time: string | null
+          cleaning_type: string | null
           completed_date: string | null
           created_at: string
           departure_time: string | null
@@ -33,6 +34,7 @@ export type Database = {
           checkout_extended?: boolean | null
           cleaning_end_time?: string | null
           cleaning_start_time?: string | null
+          cleaning_type?: string | null
           completed_date?: string | null
           created_at?: string
           departure_time?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           checkout_extended?: boolean | null
           cleaning_end_time?: string | null
           cleaning_start_time?: string | null
+          cleaning_type?: string | null
           completed_date?: string | null
           created_at?: string
           departure_time?: string | null
@@ -77,6 +80,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cleaning_tasks_archive: {
+        Row: {
+          arrival_time: string | null
+          booking_id: string | null
+          checkout_extended: boolean | null
+          cleaning_end_time: string | null
+          cleaning_start_time: string | null
+          completed_date: string | null
+          created_at: string | null
+          departure_time: string | null
+          id: string | null
+          notes: string | null
+          room_id: string | null
+          scheduled_date: string | null
+          status: string | null
+          supervisor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          arrival_time?: string | null
+          booking_id?: string | null
+          checkout_extended?: boolean | null
+          cleaning_end_time?: string | null
+          cleaning_start_time?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          departure_time?: string | null
+          id?: string | null
+          notes?: string | null
+          room_id?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          supervisor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          arrival_time?: string | null
+          booking_id?: string | null
+          checkout_extended?: boolean | null
+          cleaning_end_time?: string | null
+          cleaning_start_time?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          departure_time?: string | null
+          id?: string | null
+          notes?: string | null
+          room_id?: string | null
+          scheduled_date?: string | null
+          status?: string | null
+          supervisor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       import_log: {
         Row: {
@@ -218,8 +275,8 @@ export type Database = {
           created_at: string
           id: string
           name: string
-          role: string
-          shift: string
+          role: string | null
+          shift: string | null
           updated_at: string
           user_id: string | null
         }
@@ -228,8 +285,8 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
-          role: string
-          shift: string
+          role?: string | null
+          shift?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -238,8 +295,8 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
-          role?: string
-          shift?: string
+          role?: string | null
+          shift?: string | null
           updated_at?: string
           user_id?: string | null
         }

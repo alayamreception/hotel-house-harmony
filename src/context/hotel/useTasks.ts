@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CleaningTask, TaskAssignment, StaffBasicInfo } from '@/types';
+import { CleaningTask, TaskStatus, TaskAssignment, StaffBasicInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 

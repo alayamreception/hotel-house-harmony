@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Room, Staff, CleaningTask } from '@/types';
+import { Room, Staff, CleaningTask, TaskStatus } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '../AuthContext';
@@ -150,7 +150,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Function to update task status that also updates room status if needed
-  const updateTaskStatus = async (taskId: string, status: CleaningTask['status']) => {
+  const updateTaskStatus = async (taskId: string, status: TaskStatus) => {
     const success = await tasksManager.updateTaskStatus(taskId, status);
     
     if (success && status === 'completed') {
