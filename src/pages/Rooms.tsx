@@ -25,18 +25,20 @@ import { Label } from '@/components/ui/label';
 import { Plus, House, Loader2 } from 'lucide-react';
 import { RoomStatus } from '@/types';
 import RoomRealtimeListener from '@/components/RoomRealtimeListener';
-import { CheckboxItem, CheckboxIndicator, Checkbox } from '@/components/ui/checkbox';
 
 const Rooms = () => {
-  const { rooms, staff, updateRoomStatus, assignTask, addRoom, loading } = useHotel();
+  const { 
+    rooms, 
+    updateRoomStatus, 
+    addRoom, 
+    loading, 
+    markRoomForEarlyCheckout,
+    extendRoomStay
+  } = useHotel();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
-  const [selectedSupervisorId, setSelectedSupervisorId] = useState<string>('none'); // Changed from empty string to 'none'
   const [dialogOpen, setDialogOpen] = useState(false);
   
   // New room form state
@@ -53,11 +55,6 @@ const Rooms = () => {
     return Array.from(new Set(rooms.map(room => room.type)));
   }, [rooms]);
   
-  // Filter staff by role for supervisor selection
-  const supervisors = useMemo(() => {
-    return staff.filter(s => s.role === 'Supervisor' || s.role === 'Manager');
-  }, [staff]);
-  
   // Filter rooms based on search term and filters
   const filteredRooms = useMemo(() => {
     return rooms.filter(room => {
@@ -71,38 +68,6 @@ const Rooms = () => {
       return matchesSearch && matchesStatus && matchesType;
     });
   }, [rooms, searchTerm, statusFilter, typeFilter]);
-  
-  const handleAssignClick = (roomId: string) => {
-    setSelectedRoomId(roomId);
-    setSelectedStaffIds([]);
-    setSelectedSupervisorId('none'); // Changed from empty string to 'none'
-    setAssignDialogOpen(true);
-  };
-  
-  const handleToggleStaff = (staffId: string) => {
-    setSelectedStaffIds(prev => 
-      prev.includes(staffId)
-        ? prev.filter(id => id !== staffId)
-        : [...prev, staffId]
-    );
-  };
-  
-  const handleAssignSubmit = async () => {
-    if (selectedRoomId && selectedStaffIds.length > 0) {
-      // Use undefined for 'none' value, or the actual supervisor ID
-      const supervisorId = selectedSupervisorId === 'none' ? undefined : selectedSupervisorId;
-      
-      await assignTask(
-        selectedRoomId, 
-        selectedStaffIds, 
-        supervisorId
-      );
-      setAssignDialogOpen(false);
-      setSelectedRoomId(null);
-      setSelectedStaffIds([]);
-      setSelectedSupervisorId('none'); // Reset to 'none'
-    }
-  };
   
   const handleAddRoom = async () => {
     await addRoom(newRoom);
@@ -300,74 +265,12 @@ const Rooms = () => {
               key={room.id}
               room={room}
               onStatusChange={updateRoomStatus}
-              onAssign={handleAssignClick}
+              onEarlyCheckout={markRoomForEarlyCheckout}
+              onExtendStay={extendRoomStay}
             />
           ))}
         </div>
       )}
-      
-      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Assign Room Cleaning</DialogTitle>
-            <DialogDescription>
-              Select staff members and a supervisor for this cleaning task.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="staff">Cleaning Staff</Label>
-              <div className="border rounded-md p-4 space-y-2 max-h-[200px] overflow-y-auto">
-                {staff.filter(s => s.role === 'Housekeeper').map((staffMember) => (
-                  <div key={staffMember.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`staff-${staffMember.id}`}
-                      checked={selectedStaffIds.includes(staffMember.id)}
-                      onCheckedChange={() => handleToggleStaff(staffMember.id)}
-                    />
-                    <Label htmlFor={`staff-${staffMember.id}`} className="flex items-center gap-2 cursor-pointer">
-                      {staffMember.name} - {staffMember.shift} shift
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              {selectedStaffIds.length === 0 && (
-                <p className="text-sm text-destructive">Please select at least one staff member</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="supervisor">Supervisor (Optional)</Label>
-              <Select value={selectedSupervisorId} onValueChange={setSelectedSupervisorId}>
-                <SelectTrigger id="supervisor" className="w-full">
-                  <SelectValue placeholder="Select supervisor (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No supervisor</SelectItem>
-                  {supervisors.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name} - {s.role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleAssignSubmit}
-              disabled={selectedStaffIds.length === 0}
-            >
-              Assign
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
