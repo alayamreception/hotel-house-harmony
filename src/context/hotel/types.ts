@@ -1,5 +1,5 @@
 
-import { Room, Staff, CleaningTask, DashboardStats, TaskAssignment, StaffBasicInfo } from '@/types';
+import { Room, Staff, CleaningTask, DashboardStats, TaskAssignment, StaffBasicInfo, TaskStatus } from '@/types';
 
 export interface HotelContextType {
   rooms: Room[];
@@ -16,7 +16,7 @@ export interface HotelContextType {
   availableCottages: string[];
   updateRoomStatus: (roomId: string, status: Room['status']) => Promise<void>;
   assignTask: (roomId: string, staffIds: string[], supervisorId?: string) => Promise<void>;
-  updateTaskStatus: (taskId: string, status: CleaningTask['status']) => Promise<void>;
+  updateTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
   addRoom: (room: Omit<Room, 'id'>) => Promise<void>;
   addStaff: (staff: Omit<Staff, 'id'>) => Promise<void>;
   fetchRooms: () => Promise<void>;

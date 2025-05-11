@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { CleaningTask, TaskAssignment, StaffBasicInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -92,7 +91,7 @@ export function useTasks(selectedCottage: string | null) {
           roomId: task.room_id || '',
           staffId: task.staff_id || '',
           supervisorId: task.supervisor_id,
-          status: task.status as CleaningTask['status'],
+          status: task.status as TaskStatus,
           scheduledDate: new Date(task.scheduled_date),
           completedDate: task.completed_date ? new Date(task.completed_date) : undefined,
           cleaningStartTime: task.cleaning_start_time ? new Date(task.cleaning_start_time) : undefined,
@@ -115,7 +114,7 @@ export function useTasks(selectedCottage: string | null) {
     }
   };
 
-  const updateTaskStatus = async (taskId: string, status: CleaningTask['status']) => {
+  const updateTaskStatus = async (taskId: string, status: TaskStatus) => {
     try {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return false;

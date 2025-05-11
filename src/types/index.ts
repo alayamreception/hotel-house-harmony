@@ -1,5 +1,6 @@
-
 export type RoomStatus = 'clean' | 'dirty' | 'maintenance' | 'occupied';
+
+export type TaskStatus = 'pending' | 'in-progress' | 'completed';
 
 export interface Room {
   id: string;
@@ -44,7 +45,7 @@ export interface CleaningTask {
   roomId: string;
   staffId: string;
   supervisorId?: string;
-  status: 'pending' | 'in-progress' | 'completed';
+  status: TaskStatus;
   scheduledDate: Date;
   completedDate?: Date;
   cleaningStartTime?: Date;
