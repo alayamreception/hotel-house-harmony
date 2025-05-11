@@ -47,6 +47,8 @@ export interface CleaningTask {
   status: 'pending' | 'in-progress' | 'completed';
   scheduledDate: Date;
   completedDate?: Date;
+  cleaningStartTime?: Date;
+  cleaningEndTime?: Date;
   notes: string;
   assignedStaff?: TaskAssignment[];
   booking_id?: string;
@@ -63,4 +65,15 @@ export interface DashboardStats {
   maintenanceRooms: number;
   assignedTasks: number;
   completedTasks: number;
+  pendingTasks: number;
+  inProgressTasks: number;
+}
+
+export interface RoomLog {
+  id: string;
+  roomId: string;
+  logTimestamp: Date;
+  userName: string;
+  logType: string;
+  notes?: string;
 }

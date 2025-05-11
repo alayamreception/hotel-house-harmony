@@ -25,4 +25,5 @@ export interface HotelContextType {
   updateTaskAssignment: (taskId: string, staffIds: string[], supervisorId?: string) => Promise<void>;
   markRoomForEarlyCheckout: (roomId: string) => Promise<void>;
   extendRoomStay: (roomId: string) => Promise<void>;
+  addRoomLog: (roomId: string, logType: string, notes?: string) => Promise<void>;
 }

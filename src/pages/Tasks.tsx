@@ -18,9 +18,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format, parseISO } from 'date-fns';
+import StatsCard from '@/components/StatsCard';
+import { CheckCircle, Clock, AlertTriangle, ClipboardList } from 'lucide-react';
 
 const Tasks = () => {
-  const { tasks, rooms, staff, updateTaskStatus, updateTaskAssignment } = useHotel();
+  const { tasks, rooms, staff, stats, updateTaskStatus, updateTaskAssignment } = useHotel();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -112,6 +114,34 @@ const Tasks = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold tracking-tight">Cleaning Tasks</h2>
       </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title="Pending Tasks"
+          value={stats.pendingTasks}
+          icon={<ClipboardList className="h-4 w-4" />}
+          className="bg-amber-50 dark:bg-amber-900/30"
+        />
+        <StatsCard
+          title="In Progress"
+          value={stats.inProgressTasks}
+          icon={<Clock className="h-4 w-4" />}
+          className="bg-blue-50 dark:bg-blue-900/30"
+        />
+        <StatsCard
+          title="Completed"
+          value={stats.completedTasks}
+          icon={<CheckCircle className="h-4 w-4" />}
+          className="bg-green-50 dark:bg-green-900/30"
+        />
+        <StatsCard
+          title="Total Tasks"
+          value={stats.assignedTasks}
+          icon={<AlertTriangle className="h-4 w-4" />}
+          className="bg-gray-50 dark:bg-gray-800/50"
+        />
+      </div>
       
       <div className="flex flex-col md:flex-row gap-4">
         <Input
@@ -137,9 +167,12 @@ const Tasks = () => {
       <div className="space-y-2">
         {filteredTasks.length > 0 ? (
           filteredTasks.map(task => {
-            const room = rooms.find(r => r.id === task.roomId)!;
-            const mainStaff = staff.find(s => s.id === task.staffId)!;
+            const room = rooms.find(r => r.id === task.roomId);
+            const mainStaff = staff.find(s => s.id === task.staffId);
             const supervisorStaff = task.supervisorId ? staff.find(s => s.id === task.supervisorId) : undefined;
+            
+            // Skip rendering if we can't find the room or staff
+            if (!room) return null;
             
             return (
               <div key={task.id} className="relative">
@@ -156,7 +189,7 @@ const Tasks = () => {
                 <TaskItem
                   task={task}
                   room={room}
-                  staff={mainStaff}
+                  staff={mainStaff || { id: '', name: 'Unassigned', role: '', shift: '', assignedRooms: [] }}
                   supervisorStaff={supervisorStaff}
                   onStatusChange={updateTaskStatus}
                 />
@@ -181,6 +214,16 @@ const Tasks = () => {
                   {task.departure_time && (
                     <Badge variant="outline" className="text-sm bg-amber-50 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
                       Departure: {formatDate(task.departure_time)}
+                    </Badge>
+                  )}
+                  {task.cleaningStartTime && (
+                    <Badge variant="outline" className="text-sm bg-blue-50 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      Started: {formatDate(task.cleaningStartTime)}
+                    </Badge>
+                  )}
+                  {task.cleaningEndTime && (
+                    <Badge variant="outline" className="text-sm bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      Finished: {formatDate(task.cleaningEndTime)}
                     </Badge>
                   )}
                 </div>
