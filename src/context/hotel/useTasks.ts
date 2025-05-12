@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { CleaningTask, TaskStatus, TaskAssignment, StaffBasicInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,7 +90,6 @@ export function useTasks(selectedCottage: string | null) {
         return {
           id: task.id,
           roomId: task.room_id || '',
-          staffId: task.staff_id || '',
           supervisorId: task.supervisor_id,
           status: task.status as TaskStatus,
           scheduledDate: new Date(task.scheduled_date),
