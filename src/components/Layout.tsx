@@ -4,8 +4,9 @@ import { Hotel, CalendarDays, Clock, House, Trash, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PwaInstallPrompt } from './PwaInstallPrompt';
 import { usePwaInstall } from '@/hooks/use-pwa-install';
-import Sidebar from './navigation/Sidebar';
+import { Sidebar } from './navigation/Sidebar';
 import Header from './navigation/Header';
+import { SidebarProvider } from '@/hooks/use-sidebar';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
@@ -74,29 +75,31 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   ];
   
   return (
-    <div className={`flex h-screen ${theme === 'dark' ? 'dark' : ''}`}>
-      {/* Sidebar */}
-      <Sidebar collapsed={collapsed} />
-      
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
-        <Header 
-          collapsed={collapsed} 
-          toggleSidebar={toggleSidebar}
-          navItems={navItems}
-          theme={theme}
-          toggleTheme={toggleTheme}
-        />
-        <main className="p-6 dark:text-white">{children}</main>
+    <SidebarProvider>
+      <div className={`flex h-screen ${theme === 'dark' ? 'dark' : ''}`}>
+        {/* Sidebar */}
+        <Sidebar />
         
-        {/* PWA Install Prompt */}
-        {showInstallPrompt && (
-          <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-            <PwaInstallPrompt onClose={() => setShowInstallPrompt(false)} />
-          </div>
-        )}
+        {/* Main Content */}
+        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
+          <Header 
+            collapsed={collapsed} 
+            toggleSidebar={toggleSidebar}
+            navItems={navItems}
+            theme={theme}
+            toggleTheme={toggleTheme}
+          />
+          <main className="p-6 dark:text-white">{children}</main>
+          
+          {/* PWA Install Prompt */}
+          {showInstallPrompt && (
+            <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+              <PwaInstallPrompt onClose={() => setShowInstallPrompt(false)} />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useHotel } from '@/context/HotelContext';
 import { Staff, CleaningTask } from '@/types';
@@ -42,11 +43,17 @@ const AssignTasks = () => {
       return;
     }
 
+    setIsAssigning(true);
+    
     // Process each selected task
     let successCount = 0;
     for (const taskId of selectedTasks) {
-      const result = await updateTaskAssignment(taskId, selectedStaff);
-      if (result === true) successCount++;  // Check for boolean true value
+      try {
+        const result = await updateTaskAssignment(taskId, selectedStaff);
+        if (result) successCount++;  // Check if result is truthy
+      } catch (error) {
+        console.error('Error assigning task:', error);
+      }
     }
 
     if (successCount > 0) {

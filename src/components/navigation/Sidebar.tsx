@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -6,18 +7,16 @@ import {
   FileUp,
   Home,
   ListChecks,
-  LucideIcon,
   Settings,
   User,
   UserCheck,
   X,
 } from "lucide-react";
-
 import { useSidebar } from "@/hooks/use-sidebar";
 
 interface NavItemProps {
   to: string;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   name: string;
 }
 
@@ -35,7 +34,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, name }) => {
             : "text-gray-700 dark:text-gray-300"
         }`}
       >
-        <icon className="h-5 w-5 mr-2" />
+        <span className="h-5 w-5 mr-2">{icon}</span>
         {name}
       </Link>
     </li>
@@ -43,10 +42,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, name }) => {
 };
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "Rooms", href: "/rooms", icon: Settings },
-  { name: "Tasks", href: "/tasks", icon: ListChecks },
-  { name: "Staff", href: "/staff", icon: User },
+  { name: "Dashboard", href: "/", icon: <Home className="h-5 w-5" /> },
+  { name: "Rooms", href: "/rooms", icon: <Settings className="h-5 w-5" /> },
+  { name: "Tasks", href: "/tasks", icon: <ListChecks className="h-5 w-5" /> },
+  { name: "Staff", href: "/staff", icon: <User className="h-5 w-5" /> },
 ];
 
 export const Sidebar = () => {

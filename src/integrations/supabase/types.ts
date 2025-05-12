@@ -138,6 +138,65 @@ export type Database = {
         }
         Relationships: []
       }
+      common_tasks: {
+        Row: {
+          cleaning_type: string | null
+          cottage_id: number | null
+          end_date: string
+          id: number
+          last_occurrence: string | null
+          recurrence_interval_in_days: number | null
+          start_date: string
+          task_duration_in_minutes: number
+          task_name: string
+        }
+        Insert: {
+          cleaning_type?: string | null
+          cottage_id?: number | null
+          end_date: string
+          id?: never
+          last_occurrence?: string | null
+          recurrence_interval_in_days?: number | null
+          start_date: string
+          task_duration_in_minutes: number
+          task_name: string
+        }
+        Update: {
+          cleaning_type?: string | null
+          cottage_id?: number | null
+          end_date?: string
+          id?: never
+          last_occurrence?: string | null
+          recurrence_interval_in_days?: number | null
+          start_date?: string
+          task_duration_in_minutes?: number
+          task_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_cottage"
+            columns: ["cottage_id"]
+            isOneToOne: false
+            referencedRelation: "cottages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cottages: {
+        Row: {
+          cottage_name: string
+          id: number
+        }
+        Insert: {
+          cottage_name: string
+          id?: never
+        }
+        Update: {
+          cottage_name?: string
+          id?: never
+        }
+        Relationships: []
+      }
       import_log: {
         Row: {
           id: string
