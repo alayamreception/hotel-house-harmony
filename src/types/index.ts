@@ -1,3 +1,4 @@
+
 export type RoomStatus = 'clean' | 'dirty' | 'maintenance' | 'occupied';
 
 export type TaskStatus = 'pending' | 'in-progress' | 'completed';
@@ -5,7 +6,7 @@ export type TaskStatus = 'pending' | 'in-progress' | 'completed';
 export interface Room {
   id: string;
   roomNumber: string;
-  type: string;
+  type: string;  // We'll keep the interface field name as 'type' for backward compatibility
   status: RoomStatus;
   notes: string;
   priority: number;
@@ -43,7 +44,7 @@ export interface TaskAssignment {
 export interface CleaningTask {
   id: string;
   roomId: string;
-  staffId: string;
+  staffId?: string;
   supervisorId?: string;
   status: TaskStatus;
   scheduledDate: Date;

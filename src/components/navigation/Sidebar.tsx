@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import NavItem from './NavItem';
-import { Home, ClipboardList, Users, Building2, ClipboardCheck, LogOut, FileInput } from 'lucide-react';
+import { Home, ClipboardList, Users, Building2, ClipboardCheck, LogOut, FileInput, UserCheck } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -96,6 +96,13 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = true }) => {
             icon={<ClipboardList className="h-4 w-4" />}
             label="Tasks"
             active={location.pathname === '/tasks'}
+            collapsed={collapsed}
+          />
+          <NavItem
+            to="/assign-tasks"
+            icon={<UserCheck className="h-4 w-4" />}
+            label="Assign Tasks"
+            active={location.pathname === '/assign-tasks'}
             collapsed={collapsed}
           />
           <NavItem

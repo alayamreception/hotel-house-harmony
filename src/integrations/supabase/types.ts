@@ -88,6 +88,7 @@ export type Database = {
           checkout_extended: boolean | null
           cleaning_end_time: string | null
           cleaning_start_time: string | null
+          cleaning_type: string | null
           completed_date: string | null
           created_at: string | null
           departure_time: string | null
@@ -105,6 +106,7 @@ export type Database = {
           checkout_extended?: boolean | null
           cleaning_end_time?: string | null
           cleaning_start_time?: string | null
+          cleaning_type?: string | null
           completed_date?: string | null
           created_at?: string | null
           departure_time?: string | null
@@ -122,6 +124,7 @@ export type Database = {
           checkout_extended?: boolean | null
           cleaning_end_time?: string | null
           cleaning_start_time?: string | null
+          cleaning_type?: string | null
           completed_date?: string | null
           created_at?: string | null
           departure_time?: string | null
@@ -229,6 +232,7 @@ export type Database = {
       }
       rooms: {
         Row: {
+          cottage: string | null
           created_at: string
           early_checkout: boolean | null
           id: string
@@ -236,12 +240,13 @@ export type Database = {
           notes: string | null
           priority: number | null
           room_number: string
+          room_type: string
           status: string
           today_checkout: boolean | null
-          type: string
           updated_at: string
         }
         Insert: {
+          cottage?: string | null
           created_at?: string
           early_checkout?: boolean | null
           id?: string
@@ -249,12 +254,13 @@ export type Database = {
           notes?: string | null
           priority?: number | null
           room_number: string
-          status: string
+          room_type: string
+          status?: string
           today_checkout?: boolean | null
-          type: string
           updated_at?: string
         }
         Update: {
+          cottage?: string | null
           created_at?: string
           early_checkout?: boolean | null
           id?: string
@@ -262,9 +268,9 @@ export type Database = {
           notes?: string | null
           priority?: number | null
           room_number?: string
+          room_type?: string
           status?: string
           today_checkout?: boolean | null
-          type?: string
           updated_at?: string
         }
         Relationships: []
