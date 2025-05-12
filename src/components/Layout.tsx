@@ -10,7 +10,6 @@ import { SidebarProvider } from '@/hooks/use-sidebar';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
-  const [collapsed, setCollapsed] = useState(true); // Updated to true as default
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const { isInstallable, isInstalled } = usePwaInstall();
@@ -47,10 +46,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     });
   };
   
-  const toggleSidebar = () => {
-    setCollapsed(prev => !prev);
-  };
-  
   const navItems = [
     { 
       to: '/', 
@@ -81,10 +76,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <Sidebar />
         
         {/* Main Content */}
-        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
+        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900 md:ml-64 transition-all duration-200 md:ml-[var(--sidebar-width,16rem)]">
           <Header 
-            collapsed={collapsed} 
-            toggleSidebar={toggleSidebar}
             navItems={navItems}
             theme={theme}
             toggleTheme={toggleTheme}

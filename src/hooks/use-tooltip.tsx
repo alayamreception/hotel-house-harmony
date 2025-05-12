@@ -17,7 +17,7 @@ export function useTooltip() {
     setIsVisible(false);
   };
   
-  // Add the missing properties
+  // Add the setTooltipContent function
   const setTooltipContent = (tooltipContent: React.ReactNode) => {
     setContent(tooltipContent);
     setIsVisible(!!tooltipContent);
