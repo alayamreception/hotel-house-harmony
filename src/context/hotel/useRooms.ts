@@ -18,7 +18,7 @@ export function useRooms(selectedCottage: string | null) {
       
       // Filter by cottage if selected
       if (selectedCottage) {
-        query = query.eq('type', selectedCottage);
+        query = query.eq('cottage', selectedCottage);
       }
       
       const { data, error } = await query;
@@ -30,7 +30,7 @@ export function useRooms(selectedCottage: string | null) {
       const formattedRooms: Room[] = data.map(room => ({
         id: room.id,
         roomNumber: room.room_number,
-        type: room.type,
+        type: room.room_type,
         status: room.status as Room['status'],
         notes: room.notes || '',
         priority: room.priority || 1,
@@ -53,14 +53,14 @@ export function useRooms(selectedCottage: string | null) {
     try {
       const { data, error } = await supabase
         .from('rooms')
-        .select('type')
-        .order('type');
+        .select('cottage')
+        .order('cottage');
       
       if (error) throw error;
       
       const uniqueCottages = Array.from(
-        new Set(data.map(room => room.type))
-      );
+        new Set(data.map(room => room.cottage))
+      ).filter(cottage => cottage !== null);
       
       setAvailableCottages(uniqueCottages);
     } catch (error) {
@@ -110,7 +110,7 @@ export function useRooms(selectedCottage: string | null) {
         .from('rooms')
         .insert({
           room_number: room.roomNumber,
-          type: room.type,
+          room_type: room.type,
           status: room.status,
           notes: room.notes,
           priority: room.priority
@@ -125,7 +125,7 @@ export function useRooms(selectedCottage: string | null) {
       const newRoom: Room = {
         id: data.id,
         roomNumber: data.room_number,
-        type: data.type,
+        type: data.room_type,
         status: data.status as Room['status'],
         notes: data.notes || '',
         priority: data.priority || 1,

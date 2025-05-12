@@ -10,6 +10,7 @@ import Tasks from '@/pages/Tasks';
 import Staff from '@/pages/Staff';
 import SupervisorTasks from '@/pages/SupervisorTasks';
 import ImportTasks from '@/pages/ImportTasks';
+import AssignTasks from '@/pages/AssignTasks';
 import Auth from '@/pages/Auth';
 import { useAuth } from '@/context/AuthContext';
 
@@ -57,6 +58,15 @@ const AppRoutes = () => {
           <HotelProvider>
             <Layout>
               <Tasks />
+            </Layout>
+          </HotelProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/assign-tasks" element={
+        <ProtectedRoute>
+          <HotelProvider>
+            <Layout>
+              <AssignTasks />
             </Layout>
           </HotelProvider>
         </ProtectedRoute>
