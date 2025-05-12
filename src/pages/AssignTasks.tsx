@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useHotel } from "@/context/HotelContext";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -70,8 +69,8 @@ const AssignTasks = () => {
     // Process each selected task
     let successCount = 0;
     for (const taskId of selectedTasks) {
-      const success = await updateTaskAssignment(taskId, selectedStaff);
-      if (success) successCount++;
+      const result = await updateTaskAssignment(taskId, selectedStaff);
+      if (result) successCount++;
     }
 
     if (successCount > 0) {

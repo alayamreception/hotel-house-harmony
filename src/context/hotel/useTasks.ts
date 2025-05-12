@@ -22,7 +22,7 @@ export function useTasks(selectedCottage: string | null) {
         const { data: roomsWithType, error: roomsError } = await supabase
           .from('rooms')
           .select('id')
-          .eq('type', selectedCottage);
+          .eq('cottage', selectedCottage);
           
         if (roomsError) throw roomsError;
         
@@ -45,24 +45,28 @@ export function useTasks(selectedCottage: string | null) {
       
       // Fetch staff data for assignments
       const staffIds = [...new Set(assignmentsData?.map(a => a.staff_id) || [])];
-      const { data: staffData, error: staffError } = await supabase
-        .from('staff')
-        .select('id, name, role, shift, avatar')
-        .in('id', staffIds.length > 0 ? staffIds : ['no-staff']);
-        
-      if (staffError) throw staffError;
       
-      // Create a map of staff by ID for quick lookup
-      const staffMap = new Map<string, StaffBasicInfo>();
-      staffData?.forEach(staff => {
-        staffMap.set(staff.id, {
-          id: staff.id,
-          name: staff.name,
-          role: staff.role,
-          shift: staff.shift,
-          avatar: staff.avatar
+      let staffMap = new Map<string, StaffBasicInfo>();
+      
+      if (staffIds.length > 0) {
+        const { data: staffData, error: staffError } = await supabase
+          .from('staff')
+          .select('id, name, role, shift, avatar')
+          .in('id', staffIds);
+          
+        if (staffError) throw staffError;
+        
+        // Create a map of staff by ID for quick lookup
+        staffData?.forEach(staff => {
+          staffMap.set(staff.id, {
+            id: staff.id,
+            name: staff.name,
+            role: staff.role,
+            shift: staff.shift,
+            avatar: staff.avatar
+          });
         });
-      });
+      }
       
       // Create a map of assignments by task ID
       const assignmentsByTask = new Map<string, TaskAssignment[]>();
