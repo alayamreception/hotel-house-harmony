@@ -14,14 +14,14 @@ const SidebarContext = createContext<SidebarContextType>({
 });
 
 export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
+  // Initialize the sidebar closed by default
   const [isOpen, setIsOpen] = useState(false);
 
   // Check screen size and set sidebar state accordingly
   useEffect(() => {
     const checkScreenSize = () => {
-      if (window.innerWidth >= 768) {
-        setIsOpen(true);
-      } else {
+      // Only set isOpen to true if screen is mobile-sized
+      if (window.innerWidth < 768) {
         setIsOpen(false);
       }
     };

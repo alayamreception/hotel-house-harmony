@@ -75,14 +75,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Sidebar */}
         <Sidebar />
         
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900 md:ml-64 transition-all duration-200 md:ml-[var(--sidebar-width,16rem)]">
+        {/* Main Content - Fixed width issues */}
+        <div className="flex-1 flex flex-col overflow-auto bg-gray-50 dark:bg-gray-900 transition-all duration-200">
           <Header 
             navItems={navItems}
             theme={theme}
             toggleTheme={toggleTheme}
           />
-          <main className="p-6 dark:text-white">{children}</main>
+          <main className="flex-1 p-6 dark:text-white">{children}</main>
           
           {/* PWA Install Prompt */}
           {showInstallPrompt && (

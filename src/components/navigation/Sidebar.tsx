@@ -51,6 +51,7 @@ const navigation = [
 
 export const Sidebar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
+  const location = useLocation();
 
   return (
     <>
@@ -65,7 +66,7 @@ export const Sidebar = () => {
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out dark:bg-gray-900 dark:border-gray-700 ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-20"
-        } overflow-hidden`}
+        }`}
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
