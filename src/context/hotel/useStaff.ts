@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Staff } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export function useStaff() {
+export function useStaff(selectedCottage: string | null) {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,15 +11,22 @@ export function useStaff() {
   const fetchStaff = async () => {
     try {
       setLoading(true);
-      
-      const { data, error } = await supabase
+
+      let query = supabase
         .from('staff')
         .select('*');
-      
+
+      // Conditionally filter by selectedCottage
+      if (selectedCottage) {
+        query = query.eq('assigned_cottage', selectedCottage); // Assuming 'assigned_cottage' is the column name
+      }
+
+      const { data, error } = await query;
+
       if (error) {
         throw error;
       }
-      
+
       const formattedStaff: Staff[] = data.map(staffMember => ({
         id: staffMember.id,
         name: staffMember.name,
@@ -29,7 +35,7 @@ export function useStaff() {
         assignedRooms: [], // We'll populate this from tasks
         avatar: staffMember.avatar
       }));
-      
+
       setStaff(formattedStaff);
     } catch (error) {
       console.error('Error fetching staff:', error);
@@ -52,11 +58,11 @@ export function useStaff() {
         })
         .select()
         .single();
-      
+
       if (error) {
         throw error;
       }
-      
+
       const newStaff: Staff = {
         id: data.id,
         name: data.name,
@@ -65,7 +71,7 @@ export function useStaff() {
         assignedRooms: [],
         avatar: data.avatar
       };
-      
+
       setStaff(prevStaff => [...prevStaff, newStaff]);
       toast.success(`${staffData.name} added to staff`);
     } catch (error) {

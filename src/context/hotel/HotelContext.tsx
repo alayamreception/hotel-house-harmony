@@ -21,7 +21,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   
   // Use our custom hooks
   const roomsManager = useRooms(selectedCottage);
-  const staffManager = useStaff();
+  const staffManager = useStaff(selectedCottage);
   const tasksManager = useTasks(selectedCottage);
   
   // Compute stats from rooms and tasks
