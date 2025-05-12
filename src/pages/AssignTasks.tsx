@@ -49,12 +49,11 @@ const AssignTasks = () => {
     let successCount = 0;
     for (const taskId of selectedTasks) {
       try {
-        // Call updateTaskAssignment and check if it returns true
-        const result = await updateTaskAssignment(taskId, selectedStaff);
-        // Since result might be void or boolean, we check if it's explicitly true
-        if (result === true) {
-          successCount++;
-        }
+        // Call updateTaskAssignment and don't directly compare the result
+        // as it might be void
+        await updateTaskAssignment(taskId, selectedStaff);
+        // Count every call that didn't throw an error as success
+        successCount++;
       } catch (error) {
         console.error('Error assigning task:', error);
       }
