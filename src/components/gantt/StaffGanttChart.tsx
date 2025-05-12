@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTooltip } from '@/hooks/use-tooltip';
 import { CleaningTask, Staff } from '@/types';
@@ -26,9 +25,12 @@ interface TaskBarData {
   y: number;
   x: number;
   width: number;
-  roomNumber: string;
-  status: string;
-  taskDetails: CleaningTask; // Store task details here instead of using 'task' directly
+  fill?: string;
+  height?: number;
+  // These are custom props we'll handle in our custom rendering
+  roomNumber?: string;
+  status?: string;
+  taskDetails?: CleaningTask; // Store task details here instead of using 'task' directly
 }
 
 const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, selectedDate }) => {
@@ -195,8 +197,8 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
             {staffData.tasks.map((task) => (
               <Bar
                 key={`${staffData.staffId}-${task.taskId}`}
-                dataKey={() => task.duration}
-                fill="#10b981"
+                dataKey="width"
+                isAnimationActive={false}
                 shape={
                   <CustomBar 
                     status={task.status} 
@@ -205,18 +207,16 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
                   />
                 }
                 background={{ fill: '#f3f4f6' }}
-                // Position each bar using the startHour property
-                xAxisId={0}
-                yAxisId={0}
-                stackId={1}
-                data={[{
-                  y: index, // Staff index
-                  x: task.startHour, // Start hour
-                  width: task.duration, // Duration in hours
-                  roomNumber: task.roomNumber,
-                  status: task.status,
-                  taskDetails: task.taskDetails // Pass task details through a valid property
-                }]}
+                data={[
+                  {
+                    // Only include standard Bar properties in the data object
+                    // Custom props are passed via the shape prop above
+                    y: index, // Staff index
+                    x: task.startHour, // Start hour
+                    width: task.duration, // Duration in hours
+                    fill: getStatusColor(task.status)
+                  } as TaskBarData
+                ]}
               />
             ))}
           </React.Fragment>

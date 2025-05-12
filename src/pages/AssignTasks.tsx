@@ -49,9 +49,12 @@ const AssignTasks = () => {
     let successCount = 0;
     for (const taskId of selectedTasks) {
       try {
-        // Make sure we properly check the boolean result
+        // Call updateTaskAssignment and check if it returns true
         const result = await updateTaskAssignment(taskId, selectedStaff);
-        if (result === true) successCount++;  // Explicit check for boolean true
+        // Since result might be void or boolean, we check if it's explicitly true
+        if (result === true) {
+          successCount++;
+        }
       } catch (error) {
         console.error('Error assigning task:', error);
       }
