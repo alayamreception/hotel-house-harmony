@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useHotel } from '@/context/HotelContext';
 import { Staff, CleaningTask } from '@/types';
@@ -48,8 +49,9 @@ const AssignTasks = () => {
     let successCount = 0;
     for (const taskId of selectedTasks) {
       try {
+        // Make sure we properly check the boolean result
         const result = await updateTaskAssignment(taskId, selectedStaff);
-        if (result) successCount++;  // Check if result is truthy
+        if (result === true) successCount++;  // Explicit check for boolean true
       } catch (error) {
         console.error('Error assigning task:', error);
       }

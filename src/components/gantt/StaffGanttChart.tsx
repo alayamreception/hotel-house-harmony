@@ -21,6 +21,16 @@ interface StaffGanttChartProps {
   selectedDate: Date;
 }
 
+// Define a custom data type for our bar data
+interface TaskBarData {
+  y: number;
+  x: number;
+  width: number;
+  roomNumber: string;
+  status: string;
+  taskDetails: CleaningTask; // Store task details here instead of using 'task' directly
+}
+
 const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, selectedDate }) => {
   // Generate hour labels for y-axis (0-23)
   const hourLabels = Array.from({ length: 24 }, (_, i) => ({
@@ -53,7 +63,7 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
         duration,
         startTime,
         endTime,
-        task,
+        taskDetails: task, // Store the full task object here
       };
     });
     
@@ -66,7 +76,7 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
   
   // Custom bar for tasks
   const CustomBar = (props: any) => {
-    const { x, y, width, height, status, roomNumber, task } = props;
+    const { x, y, width, height, status, roomNumber, taskDetails } = props;
     
     // Choose color based on status
     let fill;
@@ -105,7 +115,7 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const task = data.task;
+      const task = data.taskDetails; // Get task from taskDetails property
       const room = data.roomNumber;
       
       return (
@@ -191,7 +201,7 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
                   <CustomBar 
                     status={task.status} 
                     roomNumber={task.roomNumber}
-                    task={task.task}
+                    taskDetails={task.taskDetails}
                   />
                 }
                 background={{ fill: '#f3f4f6' }}
@@ -203,7 +213,9 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
                   y: index, // Staff index
                   x: task.startHour, // Start hour
                   width: task.duration, // Duration in hours
-                  task: task.task
+                  roomNumber: task.roomNumber,
+                  status: task.status,
+                  taskDetails: task.taskDetails // Pass task details through a valid property
                 }]}
               />
             ))}
