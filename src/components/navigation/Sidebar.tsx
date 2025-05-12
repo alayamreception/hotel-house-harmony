@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -105,7 +104,6 @@ export const Sidebar = () => {
               icon={<FileUp className="h-5 w-5" />}
               name="Import Tasks"
             />
-
           </ul>
         </nav>
 
