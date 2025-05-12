@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import React from 'react';
 
 export function useTooltip() {
   const [isVisible, setIsVisible] = useState(false);
@@ -16,11 +17,23 @@ export function useTooltip() {
     setIsVisible(false);
   };
   
+  // Add the missing properties
+  const setTooltipContent = (tooltipContent: React.ReactNode) => {
+    setContent(tooltipContent);
+    setIsVisible(!!tooltipContent);
+  };
+  
+  const TooltipProvider = ({ children }: { children: React.ReactNode }) => {
+    return <>{children}</>;
+  };
+  
   return {
     isVisible,
     position,
     content,
     showTooltip,
-    hideTooltip
+    hideTooltip,
+    setTooltipContent,
+    TooltipProvider
   };
 }

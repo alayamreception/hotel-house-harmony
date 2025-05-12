@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { useHotel } from '@/context/HotelContext';
 import { format } from 'date-fns';
@@ -44,13 +43,26 @@ const GanttChart = () => {
     });
   }, [tasks, selectedDate, filterStaff]);
   
-  // Group tasks by staff
+  // Group tasks by staff - Converting Map to a Record object for compatibility
   const tasksByStaff = useMemo(() => {
-    const staffMap = new Map<string, CleaningTask[]>();
+    const result: Record<string, {
+      staffId: string;
+      tasks: {
+        taskId: string;
+        startHour: number;
+        duration: number;
+        status: string;
+        roomNumber: string;
+        taskDetails: CleaningTask;
+      }[];
+    }> = {};
     
     // Initialize with all staff (even those without tasks)
     staff.forEach(s => {
-      staffMap.set(s.id, []);
+      result[s.id] = {
+        staffId: s.id,
+        tasks: []
+      };
     });
     
     // Add tasks to appropriate staff
@@ -58,16 +70,30 @@ const GanttChart = () => {
       if (task.assignedStaff && task.assignedStaff.length > 0) {
         task.assignedStaff.forEach(assignment => {
           const staffId = assignment.staffId;
-          if (staffMap.has(staffId)) {
-            staffMap.get(staffId)!.push(task);
-          } else {
-            staffMap.set(staffId, [task]);
+          if (result[staffId]) {
+            // Calculate start hour and duration
+            const startHour = task.cleaningStartTime 
+              ? new Date(task.cleaningStartTime).getHours() + (new Date(task.cleaningStartTime).getMinutes() / 60)
+              : new Date(task.scheduledDate).getHours();
+              
+            const endHour = task.cleaningEndTime
+              ? new Date(task.cleaningEndTime).getHours() + (new Date(task.cleaningEndTime).getMinutes() / 60)
+              : startHour + 1; // Default 1 hour if no end time
+              
+            result[staffId].tasks.push({
+              taskId: task.id,
+              startHour,
+              duration: endHour - startHour,
+              status: task.status,
+              roomNumber: task.roomId,
+              taskDetails: task
+            });
           }
         });
       }
     });
     
-    return staffMap;
+    return result;
   }, [filteredTasks, staff]);
   
   // Get active staff (those with tasks on the selected date)
@@ -77,7 +103,7 @@ const GanttChart = () => {
     }
     
     // Get staff that have tasks on this day
-    return staff.filter(s => tasksByStaff.get(s.id)?.length > 0);
+    return staff.filter(s => tasksByStaff[s.id]?.tasks.length > 0);
   }, [staff, tasksByStaff, filterStaff]);
   
   return (

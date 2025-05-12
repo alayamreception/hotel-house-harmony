@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTooltip } from '@/hooks/use-tooltip';
 import { CleaningTask, Staff } from '@/types';
@@ -217,7 +216,7 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
                   {staffData.tasks.map((task) => (
                     <Bar
                       key={`${staffData.staffId}-${task.taskId}`}
-                      dataKey="width"
+                      dataKey="hour"
                       isAnimationActive={false}
                       shape={
                         <CustomBar 
@@ -226,11 +225,8 @@ const StaffGanttChart: React.FC<StaffGanttChartProps> = ({ staff, tasksByStaff, 
                           taskDetails={task.taskDetails}
                         />
                       }
-                      background={{ fill: '#f3f4f6' }}
                       data={[
                         {
-                          // Only include standard Bar properties in the data object
-                          // Custom props are passed via the shape prop above
                           y: index, // Staff index
                           x: task.startHour, // Start hour
                           width: task.duration, // Duration in hours
