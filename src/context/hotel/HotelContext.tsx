@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Room, Staff, CleaningTask, TaskStatus } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,35 +45,36 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Function to update room assigned status based on task assignments
   useEffect(() => {
-    const updateStaffAssignments = async () => {
-      if (tasksManager.tasks.length === 0 || staffManager.staff.length === 0) return;
-      
-      const staffAssignedRooms: Record<string, string[]> = {};
-      
-      // Loop through all tasks to build the room-staff mapping
-      tasksManager.tasks.forEach(task => {
-        if (task.assignedStaff && task.roomId) {
-          task.assignedStaff.forEach(assignment => {
-            if (!staffAssignedRooms[assignment.staffId]) {
-              staffAssignedRooms[assignment.staffId] = [];
-            }
-            if (!staffAssignedRooms[assignment.staffId].includes(task.roomId)) {
-              staffAssignedRooms[assignment.staffId].push(task.roomId);
-            }
-          });
-        }
-      });
-      
-      // Update staff with assigned rooms
-      staffManager.setStaff(prevStaff => 
-        prevStaff.map(s => ({
-          ...s,
-          assignedRooms: staffAssignedRooms[s.id] || []
-        }))
-      );
-    };
-    
-    updateStaffAssignments();
+    if (tasksManager.tasks.length === 0 || staffManager.staff.length === 0) return;
+
+    const staffAssignedRooms: Record<string, string[]> = {};
+    tasksManager.tasks.forEach(task => {
+      if (task.assignedStaff && task.roomId) {
+        task.assignedStaff.forEach(assignment => {
+          if (!staffAssignedRooms[assignment.staffId]) {
+            staffAssignedRooms[assignment.staffId] = [];
+          }
+          if (!staffAssignedRooms[assignment.staffId].includes(task.roomId)) {
+            staffAssignedRooms[assignment.staffId].push(task.roomId);
+          }
+        });
+      }
+    });
+
+    // Only update if assignedRooms actually changed
+    let changed = false;
+    const newStaff = staffManager.staff.map(s => {
+      const newAssigned = staffAssignedRooms[s.id] || [];
+      if (JSON.stringify(s.assignedRooms) !== JSON.stringify(newAssigned)) {
+        changed = true;
+        return { ...s, assignedRooms: newAssigned };
+      }
+      return s;
+    });
+
+    if (changed) {
+      staffManager.setStaff(newStaff);
+    }
   }, [tasksManager.tasks, staffManager.staff]);
 
   // Combined function to assign task and handle room checkout
