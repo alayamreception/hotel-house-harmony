@@ -116,7 +116,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       
       // Add to room log
-      await tasksManager.addRoomLog(roomId, "Early checkout", `Room ${room.roomNumber} marked for early checkout`);
+      await tasksManager.addRoomLog(userProfile.username, roomId, "Early checkout", `Room ${room.roomNumber} marked for early checkout`);
       
       // Refresh tasks list
       await tasksManager.fetchTasks();
@@ -150,8 +150,8 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Function to update task status that also updates room status if needed
-  const updateTaskStatus = async (taskId: string, status: TaskStatus) => {
-    const success = await tasksManager.updateTaskStatus(taskId, status);
+  const updateTaskStatus = async (taskId: string, status: TaskStatus, notes?: string) => {
+    const success = await tasksManager.updateTaskStatus(taskId, status, notes);
     
     if (success && status === 'completed') {
       // Find the task to get the room ID
@@ -161,7 +161,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Update the room status to clean when task is completed
         await roomsManager.updateRoomStatus(task.roomId, 'clean');
         // Log the room status change
-        await tasksManager.addRoomLog(task.roomId, "Room cleaned", "Room status updated to clean");
+        await tasksManager.addRoomLog(userProfile.username, task.roomId, "Room cleaned", "Room status updated to clean");
       }
     }
   };

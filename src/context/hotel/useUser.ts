@@ -9,6 +9,7 @@ export interface UserProfile {
   role: string | null;
   full_name: string | null;
   avatar_url: string | null;
+  username: string | null;
 }
 
 export function useUser() {

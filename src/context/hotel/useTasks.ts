@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { CleaningTask, TaskStatus, TaskAssignment, StaffBasicInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +9,8 @@ import { useAuth } from '@/context/AuthContext';
 export function useTasks(selectedCottage: string | null) {
   const [tasks, setTasks] = useState<CleaningTask[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const userName: string = user?.email || 'Unknown';
 
   const fetchTasks = async (): Promise<void> => {
     try {
@@ -123,53 +124,71 @@ export function useTasks(selectedCottage: string | null) {
     }
   };
 
-  const updateTaskStatus = async (taskId: string, status: TaskStatus) => {
+  const updateTaskStatus = async (taskId: string, status: TaskStatus, notes?: string) => {
     try {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return false;
       
       const updates: any = { status };
-      
+
       // Handle cleaning start and end times
       if (status === 'in-progress' && !task.cleaningStartTime) {
         updates.cleaning_start_time = new Date().toISOString();
       }
-      
+
       if (status === 'completed') {
         updates.completed_date = new Date().toISOString();
         updates.cleaning_end_time = new Date().toISOString();
       }
-      
-      const { error } = await supabase
+
+      // Handle cancellation notes (field is just 'notes')
+      if (status === 'cancelled' && notes) {
+        updates.notes = notes;
+      }
+      console.log('notes field before Updating task status:', notes);      
+      console.log('Updating task status:', taskId, status, updates);
+      const { data, error } = await supabase
         .from('cleaning_tasks')
         .update(updates)
         .eq('id', taskId);
-        
+
+        console.log('Supabase update result:', data, error);
+
       if (error) {
         console.error('Error updating task status:', error);
         toast.error('Failed to update task status');
         return false;
       }
-      
+
       // Update local state
       setTasks(prevTasks => 
         prevTasks.map(t => 
-          t.id === taskId ? {
-            ...t,
-            status,
-            completedDate: status === 'completed' ? new Date() : t.completedDate,
-            cleaningStartTime: status === 'in-progress' && !t.cleaningStartTime ? new Date() : t.cleaningStartTime,
-            cleaningEndTime: status === 'completed' ? new Date() : t.cleaningEndTime
-          } : t
+          t.id === taskId
+            ? {
+                ...t,
+                status,
+                completedDate: status === 'completed' ? new Date() : t.completedDate,
+                cleaningStartTime: status === 'in-progress' && !t.cleaningStartTime ? new Date() : t.cleaningStartTime,
+                cleaningEndTime: status === 'completed' ? new Date() : t.cleaningEndTime,
+                notes: status === 'cancelled' && notes ? notes : t.notes,
+              }
+            : t
         )
       );
-      
+
       // Add to room log
       const roomId = task.roomId;
       if (roomId) {
-        await addRoomLog(roomId, `Task ${status}`, `Cleaning task marked as ${status}`);
+        await addRoomLog(
+          userName,
+          roomId,
+          `Task ${status}`,
+          status === 'cancelled' && notes
+            ? `Cleaning task cancelled: ${notes}`
+            : `Cleaning task marked as ${status}`
+        );
       }
-      
+
       toast.success(`Task marked as ${status}`);
       return true;
     } catch (error) {
@@ -218,7 +237,7 @@ export function useTasks(selectedCottage: string | null) {
       }
       
       // Add to room log
-      await addRoomLog(roomId, "Task assigned", `Cleaning task assigned to ${staffIds.length} staff members`);
+      await addRoomLog(userName, roomId, "Task assigned", `Cleaning task assigned to ${staffIds.length} staff members`);
       
       // Fetch the updated task to get the full data
       await fetchTasks();
@@ -278,7 +297,7 @@ export function useTasks(selectedCottage: string | null) {
       // Find the task to get the room ID for logging
       const task = tasks.find(t => t.id === taskId);
       if (task?.roomId) {
-        await addRoomLog(task.roomId, "Task reassigned", `Cleaning task reassigned to ${staffIds.length} staff members`);
+        await addRoomLog(userName, task.roomId, "Task reassigned", `Cleaning task reassigned to ${staffIds.length} staff members`);
       }
       
       return true;
@@ -327,7 +346,7 @@ export function useTasks(selectedCottage: string | null) {
       );
       
       // Add to room log
-      await addRoomLog(roomId, "Stay extended", "Guest stay has been extended");
+      await addRoomLog(userName, roomId, "Stay extended", "Guest stay has been extended");
       
       return true;
     } catch (error) {
@@ -338,11 +357,9 @@ export function useTasks(selectedCottage: string | null) {
   };
   
   // Helper function to add entries to room_log
-  const addRoomLog = async (roomId: string, logType: string, notes?: string) => {
+  const addRoomLog = async (userName: string, roomId: string, logType: string, notes?: string) => {
     try {
-      const { user } = useAuth();
-      const userName = user?.email || 'Unknown';
-      
+            
       const { error } = await supabase
         .from('room_log')
         .insert({

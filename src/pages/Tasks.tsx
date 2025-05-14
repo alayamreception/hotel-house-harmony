@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useHotel } from '@/context/HotelContext';
 import TaskItem from '@/components/TaskItem';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,10 @@ const Tasks = () => {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelNotes, setCancelNotes] = useState('');
+  const [cancelTaskId, setCancelTaskId] = useState<string | null>(null);
+  const cancelNotesRef = useRef<HTMLInputElement>(null);
 
   // Unique task types and cleaning types for dropdowns
   const taskTypes = useMemo(() => {
@@ -99,6 +103,21 @@ const Tasks = () => {
       setSelectedTaskId(null);
       setSelectedStaffIds([]);
     }
+  };
+
+  const handleCancelClick = (taskId: string) => {
+    setCancelTaskId(taskId);
+    setCancelNotes('');
+    setCancelDialogOpen(true);
+  };
+
+  const handleCancelTask = async () => {
+    if (!cancelNotes.trim() || !cancelTaskId) return;
+    console.log('Canceling task:', cancelTaskId, 'with notes:', cancelNotes);
+    await updateTaskStatus(cancelTaskId, 'cancelled', cancelNotes);
+    setCancelDialogOpen(false);
+    setCancelTaskId(null);
+    setCancelNotes('');
   };
 
   // Format date function
@@ -212,21 +231,13 @@ const Tasks = () => {
 
             return (
               <div key={task.id} className="relative">
-                {/* Assign Staff button */}
-                <Button
-                  className="absolute top-2 right-2 z-10"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleAssignClick(task.id)}
-                >
-                  Assign Staff
-                </Button>
-
                 <TaskItem
                   task={task}
                   room={room}
                   supervisorStaff={supervisorStaff}
                   onStatusChange={updateTaskStatus}
+                  onAssign={handleAssignClick}
+                  onCancel={handleCancelClick}
                 />
 
                 {/* Additional info badges */}
@@ -294,6 +305,44 @@ const Tasks = () => {
               disabled={selectedStaffIds.length === 0}
             >
               Assign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cancel Task</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for cancelling this task.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Label htmlFor="cancel-notes">Notes <span className="text-destructive">*</span></Label>
+            <Input
+              id="cancel-notes"
+              ref={cancelNotesRef}
+              value={cancelNotes}
+              onChange={e => setCancelNotes(e.target.value)}
+              placeholder="Enter cancellation notes"
+              required
+            />
+            {cancelNotes.trim() === '' && (
+              <p className="text-sm text-destructive">Notes are required.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
+              Close
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelTask}
+              disabled={cancelNotes.trim() === ''}
+            >
+              Cancel Task
             </Button>
           </DialogFooter>
         </DialogContent>

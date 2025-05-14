@@ -101,11 +101,11 @@ const AssignTasks = () => {
         <TabsList className="w-full mb-4 grid grid-cols-2">
           <TabsTrigger value="tasks" className="flex items-center gap-2">
             <ClipboardList className="h-4 w-4" />
-            Tasks ({availableTasks.length})
+            Rooms ({availableTasks.length})
           </TabsTrigger>
           <TabsTrigger value="staff" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Staff ({availableStaff.length})
+            Sevadhars ({availableStaff.length})
           </TabsTrigger>
         </TabsList>
 

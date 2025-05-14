@@ -65,8 +65,8 @@ const Staff = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Sevadhars</h2>
-
+        <h2 className="text-3xl font-bold tracking-tight">Sevadhars & Staff</h2>
+{/*  
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -129,7 +129,9 @@ const Staff = () => {
                   </SelectContent>
                 </Select>
               </div>
+              */}
               {/* Cottage Selection */}
+              {/* 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="cottage" className="text-right">
                   Cottage
@@ -143,16 +145,17 @@ const Staff = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={selectedCottage}>{selectedCottage}</SelectItem>
-                    {/* Add other cottages if available */}
+                    
                   </SelectContent>
                 </Select>
               </div>
-            </div>
+            </div> 
             <DialogFooter>
               <Button onClick={handleAddStaff}>Add Staff</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        */}
       </div>
 
       {staff.length === 0 ? (
@@ -164,18 +167,18 @@ const Staff = () => {
           <p className="text-muted-foreground mb-4">
             Start by adding staff members to assign them cleaning tasks.
           </p>
-          <Button onClick={() => setOpen(true)}>
+          {/* <Button onClick={() => setOpen(true)}> 
             <Plus className="mr-2 h-4 w-4" />
             Add Your First Staff Member
-          </Button>
+          </Button> */}
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {staff.map((staffMember) => {
             const assignedTasks = tasks.filter(task => task.staffId === staffMember.id);
-            const assignedRooms = staffMember.assignedRooms.map(roomId =>
-              rooms.find(room => room.id === roomId)
-            ).filter(Boolean);
+             const assignedRooms = staffMember.assignedRooms.map(roomId =>
+             rooms.find(room => room.id === roomId)
+             ).filter(Boolean);
 
             const completedTasks = assignedTasks.filter(task => task.status === 'completed').length;
             const pendingTasks = assignedTasks.filter(task => task.status !== 'completed').length;
@@ -198,6 +201,7 @@ const Staff = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {/*  
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-muted/50 p-2 rounded text-center">
                         <div className="text-xl font-bold">{pendingTasks}</div>
@@ -208,28 +212,18 @@ const Staff = () => {
                         <p className="text-xs text-muted-foreground">Completed Today</p>
                       </div>
                     </div>
+                    */}
 
                     <div>
-                      <h4 className="font-medium text-sm mb-2">Assigned Rooms</h4>
+                      <h4 className="font-medium text-sm mb-2">Assigned Cottage:</h4>
                       <div className="flex flex-wrap gap-1">
-                        {assignedRooms.length > 0 ? (
-                          assignedRooms.map((room, index) => (
-                            <div
-                              key={`${staffMember.id}-${index}`}
-                              className="px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-xs"
-                            >
-                              Room {room?.roomNumber}
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-xs text-muted-foreground">No rooms assigned</p>
-                        )}
+                          <span>{staffMember.assignedCottage}</span>
                       </div>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  <Button variant="outline" size="sm">View Details</Button>
+                  {/* <Button variant="outline" size="sm">View Details</Button> */}
                 </CardFooter>
               </Card>
             );

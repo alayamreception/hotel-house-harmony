@@ -12,7 +12,8 @@ export function useRooms(selectedCottage: string | null) {
   // Fetch rooms data
   const fetchRooms = async () => {
     try {
-      setLoading(true);
+      // hiding loading spinner showing on the page
+      // setLoading(true);
       
       let query = supabase.from('rooms').select('*');
       

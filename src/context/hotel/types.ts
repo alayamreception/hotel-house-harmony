@@ -16,7 +16,7 @@ export interface HotelContextType {
   availableCottages: string[];
   updateRoomStatus: (roomId: string, status: Room['status']) => Promise<void>;
   assignTask: (roomId: string, staffIds: string[], supervisorId?: string) => Promise<void>;
-  updateTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
+  updateTaskStatus: (taskId: string, status: TaskStatus, notes?: string) => Promise<void>;
   addRoom: (room: Omit<Room, 'id'>) => Promise<void>;
   addStaff: (staff: Omit<Staff, 'id'>) => Promise<void>;
   fetchRooms: () => Promise<void>;

@@ -167,7 +167,7 @@ const SupervisorTasks = () => {
             <div className="space-y-4">
               {filteredTasks.map(task => {
                 const room = roomMap[task.roomId];
-                const mainStaff = staffMap[task.staffId];
+                const mainStaff = staffMap[task.supervisorId];
                 
                 if (!room || !mainStaff) return null;
                 

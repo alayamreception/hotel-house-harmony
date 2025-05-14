@@ -12,9 +12,11 @@ interface TaskItemProps {
   room: Room;
   supervisorStaff?: Staff;
   onStatusChange: (taskId: string, status: CleaningTask['status']) => void;
+  onAssign?: (taskId: string) => void;
+  onCancel?: (taskId: string) => void;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ task, room, supervisorStaff, onStatusChange }) => {
+const TaskItem: React.FC<TaskItemProps> = ({ task, room, supervisorStaff, onStatusChange, onAssign, onCancel }) => {
   const getStatusStyles = () => {
     switch (task.status) {
       case 'completed':
@@ -56,7 +58,21 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, supervisorStaff, onStat
             )}
           </div>
         </div>
-        <StatusBadge status={task.status} />
+        {/* Show task status as a badge */}
+        <span className={
+          `text-xs font-semibold px-2 py-1 rounded
+          ${
+            task.status === 'completed'
+              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              : task.status === 'in-progress'
+              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+              : task.status === 'cancelled'
+              ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+          }`
+        }>
+          {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+        </span>
       </div>
       
       <div className="mb-2">
@@ -106,8 +122,39 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, supervisorStaff, onStat
           </div>
         )}
       </div>
+
+      {task.notes && (
+        <div className="mt-1">
+          <span className="text-xs font-semibold text-red-700 dark:text-red-300">Notes:</span>
+          <span className="text-xs text-muted-foreground ml-2">{task.notes}</span>
+        </div>
+      )}
       
-      <div className="flex flex-wrap gap-2">
+      {/* Action buttons */}
+      <div className="flex justify-end items-center gap-2 mt-4">
+        {/* Place your Assign and Cancel buttons here */}
+        {typeof onAssign === 'function' && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => onAssign(task.id)}
+          >
+            Assign
+          </Button>
+        )}
+        {typeof onCancel === 'function' && (
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => onCancel(task.id)}
+          >
+            Cancel
+          </Button>
+        )}
+      </div>
+
+      {/* Other status buttons */}
+      <div className="flex flex-wrap gap-2 mt-2">
         {task.status !== 'completed' && (
           <Button 
             size="sm" 

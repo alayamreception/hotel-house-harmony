@@ -1,5 +1,4 @@
-
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useHotel } from '@/context/HotelContext';
 import { useNotification } from '@/context/NotificationContext';
@@ -7,8 +6,18 @@ import { toast } from 'sonner';
 import { Room } from '@/types';
 
 const RoomRealtimeListener = () => {
-  const { fetchRooms } = useHotel();
-  const { permission, sendNotification } = useNotification();
+  const { fetchRooms: originalFetchRooms } = useHotel();
+  const { permission, sendNotification: originalSendNotification } = useNotification();
+
+  const fetchRooms = useCallback(() => {
+    // ...existing fetch logic...
+    originalFetchRooms();
+  }, [originalFetchRooms]);
+
+  const sendNotification = useCallback((title, options) => {
+    // ...existing logic...
+    originalSendNotification(title, options);
+  }, [originalSendNotification]);
 
   useEffect(() => {
     // Set up realtime listener for the rooms table

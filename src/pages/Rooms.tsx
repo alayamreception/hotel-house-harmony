@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useHotel } from '@/context/HotelContext';
 import RoomCard from '@/components/RoomCard';
@@ -24,7 +23,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Plus, House, Loader2 } from 'lucide-react';
 import { RoomStatus } from '@/types';
-import RoomRealtimeListener from '@/components/RoomRealtimeListener';
+// import RoomRealtimeListener from '@/components/RoomRealtimeListener';
 
 const Rooms = () => {
   const { 
@@ -55,18 +54,28 @@ const Rooms = () => {
     return Array.from(new Set(rooms.map(room => room.type)));
   }, [rooms]);
   
-  // Filter rooms based on search term and filters
+  // Filter rooms based on search term and filters, then sort by room number
   const filteredRooms = useMemo(() => {
-    return rooms.filter(room => {
-      const matchesSearch = room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        room.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (room.notes && room.notes.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesStatus = statusFilter === 'all' || room.status === statusFilter;
-      const matchesType = typeFilter === 'all' || room.type === typeFilter;
-      
-      return matchesSearch && matchesStatus && matchesType;
-    });
+    return rooms
+      .filter(room => {
+        const matchesSearch = room.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          room.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (room.notes && room.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        const matchesStatus = statusFilter === 'all' || room.status === statusFilter;
+        const matchesType = typeFilter === 'all' || room.type === typeFilter;
+
+        return matchesSearch && matchesStatus && matchesType;
+      })
+      .sort((a, b) => {
+        // Sort numerically if possible, otherwise lexicographically
+        const numA = parseInt(a.roomNumber, 10);
+        const numB = parseInt(b.roomNumber, 10);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
+        return a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true });
+      });
   }, [rooms, searchTerm, statusFilter, typeFilter]);
   
   const handleAddRoom = async () => {
@@ -95,11 +104,13 @@ const Rooms = () => {
   return (
     <div className="space-y-6">
       {/* Include the realtime listener */}
-      <RoomRealtimeListener />
+      {/* <RoomRealtimeListener /> */}
       
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Rooms Management</h2>
         
+        {/* Commented out the dialog and button for adding a new room */}
+        {/*
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -199,6 +210,7 @@ const Rooms = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        */}
       </div>
       
       <Card>
@@ -253,10 +265,13 @@ const Rooms = () => {
           <p className="text-muted-foreground mb-4">
             Start by adding rooms to your hotel inventory.
           </p>
+          {/* Commented out the button for adding the first room */}
+          /*
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Your First Room
           </Button>
+          */
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
