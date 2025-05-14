@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { CleaningTask, TaskStatus, TaskAssignment, StaffBasicInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {Auth} from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+
 
 export function useTasks(selectedCottage: string | null) {
   const [tasks, setTasks] = useState<CleaningTask[]>([]);
@@ -105,7 +108,9 @@ export function useTasks(selectedCottage: string | null) {
           booking_id: task.booking_id,
           checkout_extended: task.checkout_extended,
           arrival_time: task.arrival_time ? new Date(task.arrival_time) : undefined,
-          departure_time: task.departure_time ? new Date(task.departure_time) : undefined
+          departure_time: task.departure_time ? new Date(task.departure_time) : undefined,
+          cleaning_type: task.cleaning_type,
+          task_type: task.task_type,
         };
       }) || [];
       
@@ -335,7 +340,8 @@ export function useTasks(selectedCottage: string | null) {
   // Helper function to add entries to room_log
   const addRoomLog = async (roomId: string, logType: string, notes?: string) => {
     try {
-      const userName = "System"; // You can replace this with actual user name from context
+      const { user } = useAuth();
+      const userName = user?.email || 'Unknown';
       
       const { error } = await supabase
         .from('room_log')

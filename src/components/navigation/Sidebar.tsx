@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -65,13 +64,17 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = true }) => {
       "flex flex-col h-full bg-background border-r transition-all duration-300",
       collapsed ? "w-[70px]" : "w-[240px]"
     )}>
-      <div className="px-4 py-6 flex items-center justify-center">
+      <div className="px-2 py-3 flex items-center justify-center">
         {collapsed ? (
-          <Building2 className="h-6 w-6" />
+          <img src="/icons/icon-152x152.png" alt="Logo" className="h-8 w-8 rounded" />
         ) : (
-          <div className="flex items-center space-x-2">
-            <Building2 className="h-6 w-6" />
-            <h1 className="text-2xl font-semibold">CleanSweep</h1>
+          <div className="flex items-center space-x-2 w-full justify-center">
+            <img
+              src="/images/UpKeeep_Logo.webp"
+              alt="UpKeeep Logo"
+              className="h-auto"
+              style={{ width: 112, maxWidth: 112 }}
+            />
           </div>
         )}
       </div>

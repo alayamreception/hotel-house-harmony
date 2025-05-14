@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar, navItems, the
               <Moon className="h-4 w-4" />
             )}
           </Button>
-          
+          {/*  
           {isSupported && permission !== 'granted' && (
             <Button 
               variant="outline" 
@@ -58,8 +58,8 @@ const Header: React.FC<HeaderProps> = ({ collapsed, toggleSidebar, navItems, the
             >
               <Bell className="h-4 w-4 mr-1" /> Enable Notifications
             </Button>
-          )}
-          <span className="text-sm text-muted-foreground dark:text-gray-300">
+          )} */}
+          <span className="text-sm text-muted-foreground dark:text-gray-300 hidden sm:inline">
             {user.email}
           </span>
         </div>

@@ -34,7 +34,7 @@ export function PwaInstallPrompt({ onClose }: PwaInstallPromptProps) {
     <Card className="shadow-lg border-primary/20">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">Install HouseHarmony</CardTitle>
+          <CardTitle className="text-lg">Install UpKeeep</CardTitle>
           <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close">
             <X className="h-4 w-4" />
           </Button>
@@ -43,7 +43,7 @@ export function PwaInstallPrompt({ onClose }: PwaInstallPromptProps) {
       </CardHeader>
       <CardContent className="pb-2">
         <p className="text-sm text-muted-foreground">
-          Install HouseHarmony on your device for faster access and offline capabilities.
+          Install UpKeeep on your device for faster access and offline capabilities.
         </p>
       </CardContent>
       <CardFooter>

@@ -1,4 +1,3 @@
-
 export type RoomStatus = 'clean' | 'dirty' | 'maintenance' | 'occupied';
 
 export type TaskStatus = 'pending' | 'in-progress' | 'completed';
@@ -21,6 +20,7 @@ export interface Staff {
   role: string;
   shift: string;
   assignedRooms: string[];
+  assignedCottage: string; // added assignedCottage
   avatar?: string;
 }
 
@@ -31,6 +31,7 @@ export interface StaffBasicInfo {
   role: string;
   shift: string;
   avatar?: string;
+  assignedCottage?: string; // added assignedCottage
 }
 
 export interface TaskAssignment {
@@ -42,6 +43,7 @@ export interface TaskAssignment {
 }
 
 export interface CleaningTask {
+
   id: string;
   roomId: string;
   staffId?: string;
@@ -57,6 +59,8 @@ export interface CleaningTask {
   checkout_extended?: boolean;
   arrival_time?: Date;
   departure_time?: Date;
+  cleaning_type: string;
+  task_type: string;
 }
 
 export interface DashboardStats {

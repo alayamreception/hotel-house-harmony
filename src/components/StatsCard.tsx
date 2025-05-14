@@ -9,11 +9,12 @@ interface StatsCardProps {
   icon: React.ReactNode;
   description?: string;
   className?: string;
+  onClick?: () => void; // Added onClick prop
   trend?: {
     value: number;
     isPositive: boolean;
   };
-}
+  }
 
 const StatsCard: React.FC<StatsCardProps> = ({
   title,
@@ -21,10 +22,11 @@ const StatsCard: React.FC<StatsCardProps> = ({
   icon,
   description,
   className,
+  onClick, // Added onClick prop
   trend
 }) => {
   return (
-    <Card className={cn('overflow-hidden', className)}>
+    <Card className={cn('overflow-hidden', className)} onClick={onClick}>
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}

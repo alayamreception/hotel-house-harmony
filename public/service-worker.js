@@ -70,7 +70,7 @@ self.addEventListener('fetch', (event) => {
 
 // Handle push notifications - updated to handle both JSON and text data
 self.addEventListener('push', (event) => {
-  let title = 'HouseHarmony Notification';
+  let title = 'UpKeeep Notification';
   let body = 'New notification';
   let data = {};
   

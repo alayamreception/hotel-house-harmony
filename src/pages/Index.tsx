@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AuthProvider } from '@/context/AuthContext';
 import { HotelProvider } from '@/context/HotelContext';
@@ -13,6 +12,8 @@ import ImportTasks from '@/pages/ImportTasks';
 import AssignTasks from '@/pages/AssignTasks';
 import Auth from '@/pages/Auth';
 import { useAuth } from '@/context/AuthContext';
+import DebugImportTasks from './DebugImportTasks';
+import UpdateCottageSupervisors from './Cottages';
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -94,6 +95,24 @@ const AppRoutes = () => {
           <HotelProvider>
             <Layout>
               <SupervisorTasks />
+            </Layout>
+          </HotelProvider>
+        </ProtectedRoute>
+      } />
+       <Route path="/debug-import-tasks" element={
+        <ProtectedRoute>
+          <HotelProvider>
+            <Layout>
+              <DebugImportTasks />
+            </Layout>
+          </HotelProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/cottages" element={
+        <ProtectedRoute>
+          <HotelProvider>
+            <Layout>
+              <UpdateCottageSupervisors />
             </Layout>
           </HotelProvider>
         </ProtectedRoute>

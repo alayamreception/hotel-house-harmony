@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Clock, Calendar, Users } from 'lucide-react';
@@ -11,12 +10,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 interface TaskItemProps {
   task: CleaningTask;
   room: Room;
-  staff: Staff;
   supervisorStaff?: Staff;
   onStatusChange: (taskId: string, status: CleaningTask['status']) => void;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff, onStatusChange }) => {
+const TaskItem: React.FC<TaskItemProps> = ({ task, room, supervisorStaff, onStatusChange }) => {
   const getStatusStyles = () => {
     switch (task.status) {
       case 'completed':
@@ -42,8 +40,21 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
     <div className={`p-4 border rounded-md mb-2 ${getStatusStyles()} dark:text-gray-200`}>
       <div className="flex justify-between items-start mb-2">
         <div>
-          <h3 className="text-lg font-medium">Room {room.roomNumber}</h3>
-          <p className="text-sm text-muted-foreground dark:text-gray-400">{room.type} Room</p>
+          <h3 className="text-lg font-medium">{room.roomNumber}</h3>
+          <p className="text-sm text-muted-foreground dark:text-gray-400">{room.type}</p>
+          {/* Show task_type and cleaning_type */}
+          <div className="flex gap-2 mt-1">
+            {task.task_type && (
+              <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded">
+                {task.task_type}
+              </span>
+            )}
+            {task.cleaning_type && (
+              <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-0.5 rounded">
+                {task.cleaning_type}
+              </span>
+            )}
+          </div>
         </div>
         <StatusBadge status={task.status} />
       </div>
@@ -53,38 +64,27 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, room, staff, supervisorStaff,
           <div className="space-y-2">
             <p className="text-sm font-medium">Assigned Staff:</p>
             <div className="flex flex-wrap gap-2">
-              <TooltipProvider>
-                {task.assignedStaff.map(assignment => (
-                  assignment.staff && (
-                    <Tooltip key={assignment.id}>
-                      <TooltipTrigger asChild>
-                        <Avatar className="h-8 w-8 cursor-pointer">
-                          {assignment.staff.avatar ? (
-                            <img src={assignment.staff.avatar} alt={assignment.staff.name} />
-                          ) : (
-                            <AvatarFallback>{getInitials(assignment.staff.name)}</AvatarFallback>
-                          )}
-                        </Avatar>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{assignment.staff.name}</p>
-                        <p className="text-xs text-muted-foreground">{assignment.staff.role}, {assignment.staff.shift} Shift</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )
-                ))}
-              </TooltipProvider>
+              {task.assignedStaff.map(assignment =>
+                assignment.staff && (
+                  <span
+                    key={assignment.id}
+                    className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-xs font-medium"
+                  >
+                    {assignment.staff.name}
+                  </span>
+                )
+              )}
             </div>
           </div>
         ) : (
           <p className="text-sm">
-            <span className="font-medium">Assigned to:</span> {staff?.name || 'Unassigned'}
+            <span className="font-medium">Unassigned</span>
           </p>
         )}
 
         {supervisorStaff && (
           <p className="text-sm mt-1">
-            <span className="font-medium">Supervisor:</span> {supervisorStaff.name} ({supervisorStaff.role})
+            <span className="font-medium">Supervisor:</span> {supervisorStaff.name}
           </p>
         )}
       </div>

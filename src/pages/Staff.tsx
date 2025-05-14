@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useHotel } from '@/context/HotelContext';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,30 +24,33 @@ import { Plus, Clock, Loader2 } from 'lucide-react';
 import { Staff as StaffType } from '@/types';
 
 const Staff = () => {
-  const { staff, rooms, tasks, addStaff, loading } = useHotel();
+  const { staff, rooms, tasks, addStaff, loading, selectedCottage } = useHotel();
   const [open, setOpen] = useState(false);
-  
-  const [newStaff, setNewStaff] = useState<Omit<StaffType, 'id' | 'assignedRooms'>>({
+
+  const [newStaff, setNewStaff] = useState<Omit<StaffType, 'id' | 'assignedRooms' | 'assignedCottage'>>({
     name: '',
     role: 'Housekeeper',
     shift: 'Morning',
+    assignedCottage: selectedCottage, // Initialize with selectedCottage
   });
-  
+
   const handleAddStaff = async () => {
     await addStaff({
       ...newStaff,
-      assignedRooms: []
+      assignedRooms: [],
+      assignedCottage: newStaff.assignedCottage || selectedCottage, // Use the selected value or default
     });
-    
+
     setNewStaff({
       name: '',
       role: 'Housekeeper',
       shift: 'Morning',
+      assignedCottage: selectedCottage, // Reset to selectedCottage
     });
-    
+
     setOpen(false);
   };
-  
+
   if (loading.staff) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -59,12 +61,12 @@ const Staff = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Sevadhars</h2>
-        
+
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -95,8 +97,8 @@ const Staff = () => {
                 <Label htmlFor="role" className="text-right">
                   Role
                 </Label>
-                <Select 
-                  value={newStaff.role} 
+                <Select
+                  value={newStaff.role}
                   onValueChange={(value) => setNewStaff({ ...newStaff, role: value })}
                 >
                   <SelectTrigger id="role" className="col-span-3">
@@ -113,8 +115,8 @@ const Staff = () => {
                 <Label htmlFor="shift" className="text-right">
                   Shift
                 </Label>
-                <Select 
-                  value={newStaff.shift} 
+                <Select
+                  value={newStaff.shift}
                   onValueChange={(value) => setNewStaff({ ...newStaff, shift: value })}
                 >
                   <SelectTrigger id="shift" className="col-span-3">
@@ -127,6 +129,24 @@ const Staff = () => {
                   </SelectContent>
                 </Select>
               </div>
+              {/* Cottage Selection */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="cottage" className="text-right">
+                  Cottage
+                </Label>
+                <Select
+                  value={newStaff.assignedCottage || selectedCottage}
+                  onValueChange={(value) => setNewStaff({ ...newStaff, assignedCottage: value })}
+                >
+                  <SelectTrigger id="cottage" className="col-span-3">
+                    <SelectValue placeholder="Select Cottage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={selectedCottage}>{selectedCottage}</SelectItem>
+                    {/* Add other cottages if available */}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button onClick={handleAddStaff}>Add Staff</Button>
@@ -134,7 +154,7 @@ const Staff = () => {
           </DialogContent>
         </Dialog>
       </div>
-      
+
       {staff.length === 0 ? (
         <div className="bg-muted/30 rounded-lg p-8 flex flex-col items-center justify-center text-center">
           <div className="mb-4 p-3 bg-background rounded-full">
@@ -153,13 +173,13 @@ const Staff = () => {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {staff.map((staffMember) => {
             const assignedTasks = tasks.filter(task => task.staffId === staffMember.id);
-            const assignedRooms = staffMember.assignedRooms.map(roomId => 
+            const assignedRooms = staffMember.assignedRooms.map(roomId =>
               rooms.find(room => room.id === roomId)
             ).filter(Boolean);
-            
+
             const completedTasks = assignedTasks.filter(task => task.status === 'completed').length;
             const pendingTasks = assignedTasks.filter(task => task.status !== 'completed').length;
-            
+
             return (
               <Card key={staffMember.id}>
                 <CardHeader>
@@ -188,13 +208,13 @@ const Staff = () => {
                         <p className="text-xs text-muted-foreground">Completed Today</p>
                       </div>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-medium text-sm mb-2">Assigned Rooms</h4>
                       <div className="flex flex-wrap gap-1">
                         {assignedRooms.length > 0 ? (
                           assignedRooms.map((room, index) => (
-                            <div 
+                            <div
                               key={`${staffMember.id}-${index}`}
                               className="px-2 py-1 bg-secondary text-secondary-foreground rounded-md text-xs"
                             >

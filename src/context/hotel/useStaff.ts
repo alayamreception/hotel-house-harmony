@@ -54,7 +54,8 @@ export function useStaff(selectedCottage: string | null) {
           name: staffData.name,
           role: staffData.role,
           shift: staffData.shift,
-          avatar: staffData.avatar
+          avatar: staffData.avatar,
+          assigned_cottage: staffData.assignedCottage // ADD THIS LINE
         })
         .select()
         .single();
@@ -69,7 +70,8 @@ export function useStaff(selectedCottage: string | null) {
         role: data.role,
         shift: data.shift,
         assignedRooms: [],
-        avatar: data.avatar
+        avatar: data.avatar,
+        assignedCottage: data.assigned_cottage,
       };
 
       setStaff(prevStaff => [...prevStaff, newStaff]);

@@ -21,7 +21,7 @@ const NotificationSettings = () => {
         // Send a test notification
         setTimeout(() => {
           sendNotification('Notifications Enabled', {
-            body: 'You will now receive notifications from HouseHarmony.',
+            body: 'You will now receive notifications from UpKeeep.',
             icon: '/icons/icon-192x192.png'
           });
         }, 1000);
@@ -38,7 +38,7 @@ const NotificationSettings = () => {
 
   const testNotification = () => {
     sendNotification('Test Notification', {
-      body: 'This is a test notification from HouseHarmony.',
+      body: 'This is a test notification from UpKeeep.',
       icon: '/icons/icon-192x192.png'
     });
     toast.success('Test notification sent!');
