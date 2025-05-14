@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Room, Staff, CleaningTask, TaskStatus } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -196,35 +196,58 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    rooms: roomsManager.rooms,
+    staff: staffManager.staff,
+    tasks: tasksManager.tasks,
+    stats,
+    loading: {
+      rooms: roomsManager.loading,
+      staff: staffManager.loading,
+      tasks: tasksManager.loading,
+    },
+    selectedCottage,
+    setSelectedCottage,
+    availableCottages: roomsManager.availableCottages,
+    updateRoomStatus: roomsManager.updateRoomStatus,
+    assignTask,
+    updateTaskStatus,
+    addRoom: roomsManager.addRoom,
+    addStaff: staffManager.addStaff,
+    fetchRooms: roomsManager.fetchRooms,
+    fetchTasks: tasksManager.fetchTasks,
+    getSupervisorTasks: tasksManager.getSupervisorTasks,
+    updateTaskAssignment,
+    markRoomForEarlyCheckout,
+    extendRoomStay,
+    addRoomLog: tasksManager.addRoomLog
+  }), [
+    roomsManager.rooms,
+    staffManager.staff,
+    tasksManager.tasks,
+    stats,
+    roomsManager.loading,
+    staffManager.loading,
+    tasksManager.loading,
+    selectedCottage,
+    roomsManager.availableCottages,
+    roomsManager.updateRoomStatus,
+    assignTask,
+    updateTaskStatus,
+    roomsManager.addRoom,
+    staffManager.addStaff,
+    roomsManager.fetchRooms,
+    tasksManager.fetchTasks,
+    tasksManager.getSupervisorTasks,
+    updateTaskAssignment,
+    markRoomForEarlyCheckout,
+    extendRoomStay,
+    tasksManager.addRoomLog
+  ]);
+
   return (
-    <HotelContext.Provider
-      value={{
-        rooms: roomsManager.rooms,
-        staff: staffManager.staff,
-        tasks: tasksManager.tasks,
-        stats,
-        loading: {
-          rooms: roomsManager.loading,
-          staff: staffManager.loading,
-          tasks: tasksManager.loading,
-        },
-        selectedCottage,
-        setSelectedCottage,
-        availableCottages: roomsManager.availableCottages,
-        updateRoomStatus: roomsManager.updateRoomStatus,
-        assignTask,
-        updateTaskStatus,
-        addRoom: roomsManager.addRoom,
-        addStaff: staffManager.addStaff,
-        fetchRooms: roomsManager.fetchRooms,
-        fetchTasks: tasksManager.fetchTasks,
-        getSupervisorTasks: tasksManager.getSupervisorTasks,
-        updateTaskAssignment,
-        markRoomForEarlyCheckout,
-        extendRoomStay,
-        addRoomLog: tasksManager.addRoomLog
-      }}
-    >
+    <HotelContext.Provider value={contextValue}>
       {children}
     </HotelContext.Provider>
   );

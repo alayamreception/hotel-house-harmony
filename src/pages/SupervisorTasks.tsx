@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useHotel } from '@/context/HotelContext';
 import { useAuth } from '@/context/AuthContext';
@@ -18,6 +17,9 @@ const SupervisorTasks = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userCottage, setUserCottage] = useState<string | null>(null);
   
+  const roomMap = useMemo(() => Object.fromEntries(rooms.map(r => [r.id, r])), [rooms]);
+  const staffMap = useMemo(() => Object.fromEntries(staff.map(s => [s.id, s])), [staff]);
+
   // Fetch user profile and supervisor ID on component mount
   useEffect(() => {
     const fetchUserData = async () => {
@@ -68,7 +70,7 @@ const SupervisorTasks = () => {
   // Refresh tasks when the page loads
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+  }, []); // Only on mount
   
   // Filter tasks based on supervisor role and assigned cottage
   const supervisorTasks = useMemo(() => {
@@ -79,7 +81,7 @@ const SupervisorTasks = () => {
       if (userCottage) {
         // Filter by assigned cottage if there is one
         return tasks.filter(task => {
-          const room = rooms.find(r => r.id === task.roomId);
+          const room = roomMap[task.roomId];
           return room && room.type === userCottage;
         });
       } else {
@@ -94,7 +96,7 @@ const SupervisorTasks = () => {
     }
     
     return [];
-  }, [tasks, rooms, supervisorId, userRole, userCottage]);
+  }, [tasks, roomMap, supervisorId, userRole, userCottage]);
   
   // Filter tasks by status
   const filteredTasks = useMemo(() => {
@@ -164,8 +166,8 @@ const SupervisorTasks = () => {
           {filteredTasks.length > 0 ? (
             <div className="space-y-4">
               {filteredTasks.map(task => {
-                const room = rooms.find(r => r.id === task.roomId);
-                const mainStaff = staff.find(s => s.id === task.staffId);
+                const room = roomMap[task.roomId];
+                const mainStaff = staffMap[task.staffId];
                 
                 if (!room || !mainStaff) return null;
                 
