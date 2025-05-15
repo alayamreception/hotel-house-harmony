@@ -145,7 +145,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 </Button>
               )}
               {/* Only show Start Cleaning and Mark Complete if assignedStaff exists and has at least one staff */}
-              {task.status === 'pending' && assignedStaff.length > 0 && (
+              {task.status === 'assigned' && assignedStaff.length > 0 && (
                 <Button
                   size="sm"
                   variant="secondary"
@@ -160,7 +160,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
                   size="sm"
                   variant="outline"
                   className="w-full sm:w-auto"
-                  onClick={() => onStatusChange(task.id, 'pending')}
+                  onClick={() => onStatusChange(task.id, 'assigned')}
                 >
                   Pause
                 </Button>

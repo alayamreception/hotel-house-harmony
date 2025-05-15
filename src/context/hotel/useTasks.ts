@@ -293,6 +293,14 @@ export function useTasks(selectedCottage: string | null) {
         toast.error('Failed to assign staff to task');
         return false;
       }
+
+      // Set status to 'assigned' if staff assigned
+      if (staffIds.length > 0) {
+        await supabase
+          .from('cleaning_tasks')
+          .update({ status: 'assigned' })
+          .eq('id', taskId);
+      }
       
       // Find the task to get the room ID for logging
       const task = tasks.find(t => t.id === taskId);
@@ -300,6 +308,7 @@ export function useTasks(selectedCottage: string | null) {
         await addRoomLog(userName, task.roomId, "Task reassigned", `Cleaning task reassigned to ${staffIds.length} staff members`);
       }
       
+      await fetchTasks();
       return true;
     } catch (error) {
       console.error('Error updating task assignment:', error);

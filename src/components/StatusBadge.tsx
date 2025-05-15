@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { RoomStatus, TaskStatus } from '@/types';
@@ -38,6 +37,10 @@ const statusConfig: Record<string, { className: string; label: string }> = {
   completed: {
     className: 'bg-green-100 text-green-800 border-green-200',
     label: 'Completed'
+  },
+  assigned: {
+    className: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    label: 'Assigned'
   }
 };
 

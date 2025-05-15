@@ -1,6 +1,6 @@
 export type RoomStatus = 'clean' | 'dirty' | 'maintenance' | 'occupied';
 
-export type TaskStatus = 'pending' | 'in-progress' | 'completed';
+export type TaskStatus = 'pending' | 'assigned' | 'in-progress' | 'completed';
 
 export interface Room {
   id: string;

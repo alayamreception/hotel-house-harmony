@@ -138,9 +138,10 @@ const Tasks = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+
         <StatsCard
-          title="Pending Tasks"
+          title="Pending"
           value={stats.pendingTasks}
           icon={<ClipboardList className="h-4 w-4" />}
           className={`cursor-pointer ${
@@ -150,6 +151,18 @@ const Tasks = () => {
           } transition-all`}
           onClick={() => { setStatusFilter('pending') }}
         />
+        <StatsCard
+          title="Assigned"
+          value={tasks.filter(task => task.status === 'assigned').length}
+          icon={<ClipboardList className="h-4 w-4" />}
+          className={`cursor-pointer ${
+            statusFilter === 'assigned'
+              ? 'bg-indigo-200 dark:bg-indigo-700/60 scale-105 shadow-lg'
+              : 'bg-indigo-50 dark:bg-indigo-900/30'
+          } transition-all`}
+          onClick={() => setStatusFilter('assigned')}
+        />
+
         <StatsCard
           title="In Progress"
           value={stats.inProgressTasks}
