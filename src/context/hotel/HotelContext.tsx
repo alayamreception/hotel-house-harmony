@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import { Room, Staff, CleaningTask, TaskStatus } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { HotelContextType } from './types';
 import { useRooms } from './useRooms';
 import { useStaff } from './useStaff';
@@ -15,7 +15,7 @@ const HotelContext = createContext<HotelContextType | undefined>(undefined);
 export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [selectedCottage, setSelectedCottage] = useState<string | null>(null);
   
-  const { session } = useAuth();
+  const { sessionUserEmail } = useAuth();
   const { userProfile } = useUser();
   
   // Use our custom hooks
@@ -35,13 +35,13 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Fetch data when the component mounts or when the user logs in or cottage changes
   useEffect(() => {
-    if (session) {
+    if (sessionUserEmail) {
       roomsManager.fetchRooms();
       roomsManager.fetchCottages();
       staffManager.fetchStaff();
       tasksManager.fetchTasks();
     }
-  }, [session, selectedCottage]);
+  }, [sessionUserEmail, selectedCottage]);
 
   // Function to update room assigned status based on task assignments
   useEffect(() => {

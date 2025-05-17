@@ -10,8 +10,8 @@ export function useStaff(selectedCottage: string | null) {
   // Fetch staff data
   const fetchStaff = async () => {
     try {
-      // hide the loading spinner showing on the page
-      // setLoading(true);  
+
+      setLoading(true);  
 
       let query = supabase
         .from('staff')

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +7,7 @@ import { toast } from 'sonner';
 type AuthContextType = {
   user: User | null;
   session: Session | null;
+  sessionUserEmail: string | null; // <-- Add this line
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -22,6 +22,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Add this derived state
+  const sessionUserEmail = session?.user?.email ?? null;
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -129,7 +132,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, signIn, signUp, signOut, signInWithGoogle, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        sessionUserEmail, // <-- Add here
+        signIn,
+        signUp,
+        signOut,
+        signInWithGoogle,
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

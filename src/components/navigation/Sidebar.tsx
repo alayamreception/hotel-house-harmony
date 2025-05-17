@@ -24,7 +24,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed = true }) => {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { sessionUserEmail,user, signOut } = useAuth();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isSupervisor, setIsSupervisor] = useState(false);
   const { selectedCottage, setSelectedCottage, availableCottages } = useHotel();
@@ -53,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = true }) => {
     };
     
     fetchUserRole();
-  }, [user]);
+  }, [sessionUserEmail]);
   
   const handleSignOut = () => {
     signOut();

@@ -15,7 +15,7 @@ export interface UserProfile {
 export function useUser() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { session } = useAuth();
+  const { session, sessionUserEmail } = useAuth();
 
   const fetchUserProfile = async () => {
     if (!session?.user?.id) {
@@ -77,7 +77,7 @@ export function useUser() {
     } else {
       setUserProfile(null);
     }
-  }, [session]);
+  }, [sessionUserEmail]);
 
   return {
     userProfile,
